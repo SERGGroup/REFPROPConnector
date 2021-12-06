@@ -1,7 +1,7 @@
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
+import REFPROPConnector.constants as constants
 from abc import ABC, abstractmethod
 import warnings
-import costants
 
 
 GLOBALCounter = 0
@@ -28,8 +28,8 @@ class RefPropHandler:
         #   Molar Mass:         [kg/kmol]
         #   Heat Capacity:      [kJ/(kg*K)]
 
-        self.refprop = REFPROPFunctionLibrary(costants.RP_EXEC)
-        self.refprop.SETPATHdll(costants.RP_EXEC)
+        self.refprop = REFPROPFunctionLibrary(constants.RP_EXEC)
+        self.refprop.SETPATHdll(constants.RP_EXEC)
 
         self.fluids = fluids
         self.composition = composition
@@ -96,7 +96,7 @@ class RefPropHandler:
 
     def return_units(self, property_name):
 
-        return costants.get_units(property_name, self.unit_system)
+        return constants.get_units(property_name, self.unit_system)
 
     @property
     def unit_system(self):
@@ -137,7 +137,7 @@ class ThermodynamicVariable:
 
         self.value = None
         self.name = name
-        self.refprop_name = costants.get_refprop_name(name)
+        self.refprop_name = constants.get_refprop_name(name)
         self.is_user_defined = False
         self.order = 0
 
@@ -200,7 +200,7 @@ class AbstractThermodynamicPoint(ABC):
 
             if other_variables == "all":
 
-                other_variables = costants.get_all_refprop_names()
+                other_variables = constants.get_all_refprop_names()
 
             if type(other_variables) == list:
 
@@ -208,7 +208,7 @@ class AbstractThermodynamicPoint(ABC):
 
                 for variable_name in other_variables:
 
-                    if not costants.get_refprop_name(variable_name) in state_variables_refprop_names:
+                    if not constants.get_refprop_name(variable_name) in state_variables_refprop_names:
 
                         new_variable = ThermodynamicVariable(variable_name)
                         self.other_variables.append(new_variable)
@@ -287,7 +287,7 @@ class AbstractThermodynamicPoint(ABC):
 
     def set_variable(self, variable_name: str, variable_value: float):
 
-        input_refprop_name = costants.get_refprop_name(variable_name)
+        input_refprop_name = constants.get_refprop_name(variable_name)
 
         for variable in self.state_var_list:
 
@@ -330,7 +330,7 @@ class AbstractThermodynamicPoint(ABC):
 
     def __get_variable_from_name(self, variable_name: str):
 
-        input_refprop_name = costants.get_refprop_name(variable_name.lower())
+        input_refprop_name = constants.get_refprop_name(variable_name.lower())
 
         for variable in self.variables:
 
