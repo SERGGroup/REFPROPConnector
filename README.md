@@ -18,7 +18,7 @@ Once the installation has been completed the user can import the tool and initia
 ```python
 from REFPROPConnector import ThermodynamicPoint
 
-tp = ThermodynamicPoint.init_from_fluid(["air"], [1.])
+tp = ThermodynamicPoint(["air"], [1.])
 
 ```
 __An important aspects to keep in mind for the initialization:__
@@ -42,7 +42,7 @@ __two indipendent state variables__ in order to calculate the others.
 ```python
 from REFPROPConnector import ThermodynamicPoint
 
-tp = ThermodynamicPoint.init_from_fluid(["water"], [1.])
+tp = ThermodynamicPoint(["water"], [1.])
 
 tp.set_variable("P", 0.101325)     # P in MPa (ambient pressure)
 tp.set_variable("Q", 0.5)          # vapour quality for multiphase condition
@@ -50,15 +50,57 @@ tp.set_variable("Q", 0.5)          # vapour quality for multiphase condition
 T_sat = tp.get_variable("T")       # saturation temperature in celsius (100 °C)
 ```
 
-Suitable state variables are:
+_AbstractThermodynamicPoint_ is a class that can be overwritten in order to perform some calculation once both 
+independent state variable have been set. It can be useful for example for the evaluation of the reynolds number 
+for a fluid flowing in a pipe.
 
-  * Pressure __P__
-  * Temperature __T__
-  * Enthalpy __h__
-  * Entropy __s__
-  * Quality __Q__
-  * Density __rho__
- 
+```python
+from REFPROPConnector import AbstractThermodynamicPoint, RefPropHandler
+import numpy as np
+
+
+class TubeSection(AbstractThermodynamicPoint):
+
+    def __init__(self, diam, flow_rate):
+        
+        self.diam = diam
+        self.area = np.pi * np.power(diam / 2, 2)
+        self.flow_rate = flow_rate
+        self.Re = 0.
+        
+        refprop = RefPropHandler(["air"], [1])
+
+        super().__init__(refprop)
+
+    def other_calculation(self):
+        
+        mu = self.get_variable("mu") / (10 ** 6)  # conversion uPa*s -> Pa*s
+        self.Re = self.flow_rate * self.diam / (self.area * mu)
+
+if __name__ == "__main__":
+
+    section = TubeSection(0.5, 1)
+    
+    """
+    
+        The following line will return 0. as the function "other_calculation" 
+        is called only when 2 independent state variable is provided 
+        
+    """
+    print(section.get_variable("Re"))   
+    
+    section.set_variable("P", 0.5)
+    section.set_variable("T", 20)
+    
+    """
+    
+        The following line will return the actual Reynolds number
+        
+    """
+    print(section.get_variable("Re"))
+```
+
+For other information please contact: _pietro.ungar@unifi.it_
 
 __-------------------------- !!! THIS IS A BETA VERSION !!! --------------------------__ 
 
