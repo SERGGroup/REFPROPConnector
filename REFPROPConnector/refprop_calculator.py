@@ -96,7 +96,15 @@ class RefPropHandler:
 
     def return_units(self, property_name):
 
-        return constants.get_units(property_name, self.unit_system)
+        return_value = constants.get_units(property_name, self.unit_system)
+
+        if "Unknown" in return_value:
+
+            return ""
+
+        else:
+
+            return return_value
 
     @property
     def unit_system(self):
@@ -328,6 +336,10 @@ class AbstractThermodynamicPoint(ABC):
 
             return None
 
+    def get_unit(self, variable_name: str):
+
+        return self.RPHandler.return_units(variable_name)
+
     def __get_variable_from_name(self, variable_name: str):
 
         input_refprop_name = constants.get_refprop_name(variable_name.lower())
@@ -423,6 +435,11 @@ class AbstractThermodynamicPoint(ABC):
 
 
 class ThermodynamicPoint(AbstractThermodynamicPoint):
+
+    def __init__(self, fluids: list, composition: list, other_variables="all", calculate_on_need="all", unit_system="SI WITH C"):
+
+        RP = RefPropHandler(fluids, composition, unit_system)
+        super().__init__(RP, other_variables=other_variables, calculate_on_need=calculate_on_need)
 
     def other_calculation(self):
         pass

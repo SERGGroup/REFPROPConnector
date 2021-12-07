@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
 
     name='REFPROP_connector',
-    version='0.0.3',
+    version='0.0.4',
     license='GNU GPLv3',
 
     author='Pietro Ungar',
@@ -19,7 +19,7 @@ setup(
     long_description_content_type='text/markdown',
 
     url='https://www.dief.unifi.it/vp-177-serg-group-english-version.html',
-    download_url='https://github.com/SERGGroup/REFPROPConnector/archive/refs/tags/0.0.3.tar.gz',
+    download_url='https://github.com/SERGGroup/REFPROPConnector/archive/refs/tags/0.0.4.tar.gz',
 
     project_urls={
 
