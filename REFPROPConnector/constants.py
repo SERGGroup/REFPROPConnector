@@ -299,6 +299,25 @@ class __RefPropNamesTree(__AbstractTree):
 
             return new_list
 
+    def append_other_standard_names(self, initial_list: list, refprop_name)->list:
+
+        if self.is_empty:
+
+            return initial_list
+
+        else:
+
+            new_list = self.right_tree.append_other_standard_names(initial_list, refprop_name)
+            new_list = self.left_tree.append_other_standard_names(new_list, refprop_name)
+
+            if self.refprop_name == refprop_name:
+
+                if self.std_name not in initial_list and not self.std_name == refprop_name:
+
+                    new_list.append(self.std_name)
+
+            return new_list
+
 
 __REFPROP_NAME_TREE = __RefPropNamesTree.initialize_from_xml()
 
@@ -331,3 +350,20 @@ def get_units(name: str, unit_system: str):
 def get_all_refprop_names():
 
     return __REFPROP_NAME_TREE.append_refprop_names(list())
+
+
+def get_all_unit_systems():
+
+    units_dict = __REFPROP_NAME_TREE.get_units_dict("p")
+
+    if units_dict is not None:
+
+        return units_dict.keys()
+
+    return None
+
+
+def get_other_standard_names(refprop_name):
+
+    return __REFPROP_NAME_TREE.append_other_standard_names(list(), refprop_name)
+
