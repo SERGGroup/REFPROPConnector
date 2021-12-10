@@ -553,9 +553,9 @@ class AbstractThermodynamicPoint(ABC):
         variable_format = " {:20s}"
 
         name_bold = ef.bold + name_format + ef.rs
-        name_bold_back = bg.yellow + ef.bold + name_format + ef.rs + bg.rs
+        name_back = bg.li_yellow + name_format + bg.rs
         variable_bold = ef.bold + variable_format + ef.rs
-        variable_back = bg.yellow + variable_format + bg.rs
+        variable_back = bg.li_yellow + variable_format + bg.rs
 
         string_to_display = "\n" + name_format.format("") + " ".join(
 
@@ -567,7 +567,7 @@ class AbstractThermodynamicPoint(ABC):
 
             if unit_system == self.RPHandler.unit_system:
 
-                string_to_display += name_bold_back.format(unit_system)
+                string_to_display += name_back.format(unit_system)
                 string_to_display += "".join(
 
                     variable_back.format(constants.get_units(variable.refprop_name, unit_system)) for variable in variable_list
