@@ -100,6 +100,20 @@ if __name__ == "__main__":
     print(section.get_variable("Re"))
 ```
 
+Variable that can be calculated can be listed using _list_properties_ method from both _ThermodynamicPoint_ and 
+_AbstractThermodynamicPoint_ (the name __is not case-sensitive__). Finally, user can also select the unit system to be 
+used in the calculation, a list of possible unit system can be revived calling the method _list_unit_systems()_ 
+(current unit_system will be highlighted):  
+
+```python
+from REFPROPConnector import ThermodynamicPoint
+
+tp = ThermodynamicPoint(["water"], [1.], unit_system="MASS BASE SI")
+tp.list_properties()
+tp.list_unit_systems()
+```
+Defaul unit system is __SI with C__
+
 For other information please contact: _pietro.ungar@unifi.it_
 
 __-------------------------- !!! THIS IS A BETA VERSION !!! --------------------------__ 

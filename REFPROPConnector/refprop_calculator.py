@@ -91,8 +91,12 @@ class RefPropHandler:
 
     def calculate(self, str_in: str, str_out: str, a: float, b: float):
 
-        self.refprop.SETFLUIDSdll('*'.join(self.fluids))
-        return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
+        try:
+            self.refprop.SETFLUIDSdll('*'.join(self.fluids))
+            return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
+        except:
+
+            a= 20
 
     def return_units(self, property_name):
 
@@ -248,7 +252,7 @@ class AbstractThermodynamicPoint(ABC):
 
                 self.calculate_on_need_variables.extend(self.state_var_list)
 
-    def calculate(self):
+    def __calculate(self):
 
         not_none_variables = self.not_none_variables
         self.calculated_variables = not_none_variables
@@ -308,7 +312,7 @@ class AbstractThermodynamicPoint(ABC):
         self.reset_state_var_order()
 
         if self.calculation_ready:
-            self.calculate()
+            self.__calculate()
 
     def get_variable(self, variable_name: str):
 
@@ -424,6 +428,16 @@ class AbstractThermodynamicPoint(ABC):
 
         return variables
 
+    @property
+    def composition(self):
+
+        return self.RPHandler.composition
+
+    @composition.setter
+    def composition(self, new_composition: list):
+
+        self.RPHandler.composition = new_composition
+
     @staticmethod
     def print_global_counter(reset=True):
 
@@ -432,6 +446,143 @@ class AbstractThermodynamicPoint(ABC):
 
         if reset:
             GLOBALCounter = 0
+
+    def list_properties(self):
+
+        string_to_display = """
+        
+        -----------------------------------------------------------
+        -----------------------------------------------------------
+            
+                        REFPROP_Connector VARIABLES
+                
+                (if you need more of them to be implemented
+                please contact pietro.ungar@unifi.it)
+        
+        -----------------------------------------------------------
+        -----------------------------------------------------------"""
+
+        string_to_display += """
+        
+            STATE VARIABLES
+            (variables that can be set in order to define the 
+            thermodynamic state)
+            """
+
+        string_to_display += self.__return_variable_list_str(self.state_var_list)
+
+        string_to_display += """
+        -----------------------------------------------------------
+        
+            OTHER VARIABLES
+            """
+
+        string_to_display += self.__return_variable_list_str(self.other_variables)
+
+        print(string_to_display)
+
+    def list_unit_systems(self):
+
+        step = 4
+        i = 0
+
+        string_to_display = """
+
+                -----------------------------------------------------------
+                -----------------------------------------------------------
+
+                              REFPROP_Connector UNIT SYSTEMS
+
+                        (if you need more of them to be implemented
+                        please contact pietro.ungar@unifi.it)"""
+
+        while i < len(self.variables):
+
+            string_to_display += """
+
+                -----------------------------------------------------------
+                -----------------------------------------------------------
+
+            """
+
+            if  i + step < len(self.variables):
+
+                string_to_display += self.__return_variable_unit_str(self.variables[i: i + step])
+
+            else:
+
+                string_to_display += self.__return_variable_unit_str(self.variables[i:])
+
+            i = i + step
+
+        print(string_to_display)
+
+    def __return_variable_list_str(self, variable_list):
+
+        string_to_display = """
+            {:<15} {:<25} {:<10}
+            """.format("REFPROP NAME:", "ALTERNATIVE NAMES:", "UNIT:")
+
+        for variable in variable_list:
+
+            refprop_name = variable.refprop_name
+            other_std_names = constants.get_other_standard_names(refprop_name)
+            unit = self.get_unit(refprop_name)
+
+            string_to_display += """
+            {:<15} {:<25}  {:<10}
+            """.format(refprop_name.upper(), other_std_names[0], unit)
+
+            string_to_display += """
+            """.join("{:<15} {:<25}".format("", std_name) for std_name in other_std_names[1:])
+            string_to_display += "\n"
+
+        return string_to_display
+
+    def __return_variable_unit_str(self, variable_list):
+
+        BOLD = "\033[1m"
+        RED = '\033[91m'
+        END = "\033[0m"
+
+        name_format = " {:15s}"
+        name_bold = BOLD + name_format + END
+        name_bold_red = RED + BOLD + name_format + END
+
+        variable_format = " {:20s}"
+        variable_bold = BOLD + variable_format + END
+        variable_red = RED + variable_format + END
+
+        string_to_display = "\n" + "{:<15} ".format("") + " ".join(
+
+            variable_bold.format(variable.refprop_name.upper()) for variable in variable_list
+
+        ) + "\n\n"
+
+        for unit_system in constants.get_all_unit_systems():
+
+            if unit_system == self.RPHandler.unit_system:
+
+                string_to_display += name_bold_red.format(unit_system)
+                string_to_display += " ".join(
+
+                    variable_red.format(constants.get_units(variable.refprop_name, unit_system)) for variable in variable_list
+
+                )
+
+            else:
+
+                string_to_display += name_bold.format(unit_system)
+                string_to_display += " ".join(
+
+                    variable_format.format(constants.get_units(variable.refprop_name, unit_system)) for variable in
+                    variable_list
+
+                )
+
+            string_to_display += "\n"
+
+        return string_to_display
 
 
 class ThermodynamicPoint(AbstractThermodynamicPoint):
@@ -444,50 +595,6 @@ class ThermodynamicPoint(AbstractThermodynamicPoint):
     def other_calculation(self):
         pass
 
+    def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all", unit_system="SI WITH C"):
 
-if __name__ == "__main__":
-
-    import os
-    import pandas as pd
-    from tkinter import filedialog
-    import matplotlib.pyplot as plt
-
-    point = ThermodynamicPoint.init_from_fluid(["air"], [1])
-
-    n_elements = 100
-    x_start = 1
-    x_end = 30
-
-    x = list()
-    y = list()
-    z = list()
-
-    for i in range(n_elements):
-
-        pos = i / n_elements
-        x_new = x_start * (1 - pos) + x_end * pos
-
-        point.set_variable("T", x_new)
-        point.set_variable("Q", 0)
-
-        x.append(x_new)
-        y.append(point.get_variable("h"))
-
-        point.set_variable("T", x_new)
-        point.set_variable("Q", 1)
-
-        z.append(point.get_variable("h"))
-
-    data = {
-
-        'x': x,
-        'y': y,
-        'z': z
-
-    }
-
-    df = pd.DataFrame(data, columns=['x', 'y', 'z'])
-    df.to_excel(os.path.join(filedialog.askdirectory(), "file_output.xlsx"), index=False, header=True)
-
-    plt.plot(x, y)
-    plt.show()
+        return ThermodynamicPoint(fluids, composition, other_variables, calculate_on_need, unit_system)
