@@ -481,9 +481,8 @@ class AbstractThermodynamicPoint(ABC):
 
         print(string_to_display)
 
-    def list_unit_systems(self):
+    def list_unit_systems(self, step=4):
 
-        step = 4
         i = 0
 
         string_to_display = """
