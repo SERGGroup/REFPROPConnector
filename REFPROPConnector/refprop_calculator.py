@@ -481,7 +481,7 @@ class AbstractThermodynamicPoint(ABC):
 
         print(string_to_display)
 
-    def list_unit_systems(self, step=4):
+    def list_unit_systems(self, simplified_display=False, step=4):
 
         i = 0
 
@@ -506,11 +506,11 @@ class AbstractThermodynamicPoint(ABC):
 
             if  i + step < len(self.variables):
 
-                string_to_display += self.__return_variable_unit_str(self.variables[i: i + step])
+                string_to_display += self.__return_variable_unit_str(self.variables[i: i + step], simplified_display)
 
             else:
 
-                string_to_display += self.__return_variable_unit_str(self.variables[i:])
+                string_to_display += self.__return_variable_unit_str(self.variables[i:], simplified_display)
 
             i = i + step
 
@@ -538,21 +538,29 @@ class AbstractThermodynamicPoint(ABC):
 
         return string_to_display
 
-    def __return_variable_unit_str(self, variable_list):
-
-        BOLD = "\033[1m"
-        RED = '\033[91m'
-        END = "\033[0m"
+    def __return_variable_unit_str(self, variable_list, simplified_display):
 
         name_format = " {:15s}"
+        variable_format = " {:20s}"
+
+        if not simplified_display:
+
+            BOLD = "\033[1m"
+            RED = "\033[91m"
+            END = "\033[0m"
+
+        else:
+
+            BOLD = ""
+            RED = ""
+            END = ""
+
         name_bold = BOLD + name_format + END
         name_bold_red = RED + BOLD + name_format + END
-
-        variable_format = " {:20s}"
         variable_bold = BOLD + variable_format + END
         variable_red = RED + variable_format + END
 
-        string_to_display = "\n" + "{:<15} ".format("") + " ".join(
+        string_to_display = "\n" + name_format.format("") + " ".join(
 
             variable_bold.format(variable.refprop_name.upper()) for variable in variable_list
 

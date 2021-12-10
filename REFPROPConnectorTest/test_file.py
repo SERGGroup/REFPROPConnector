@@ -18,7 +18,7 @@ class TestREFPROPConnector(unittest.TestCase):
     def test_list_units(self):
 
         tp = ThermodynamicPoint(["air"], ["1"], unit_system="MASS BASE SI")
-        tp.list_unit_systems()
+        tp.list_unit_systems(simplified_display=False)
         self.assertEqual(True, True)
 
 
