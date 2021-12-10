@@ -1,7 +1,8 @@
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 import REFPROPConnector.constants as constants
 from abc import ABC, abstractmethod
-import warnings
+from sty import fg, bg, ef, rs
+import warnings, sty
 
 
 GLOBALCounter = 0
@@ -485,6 +486,14 @@ class AbstractThermodynamicPoint(ABC):
 
         i = 0
 
+        if simplified_display:
+
+            sty.mute(fg, bg, ef, rs)
+
+        else:
+
+            sty.unmute(fg, bg, ef, rs)
+
         string_to_display = """
 
                 -----------------------------------------------------------
@@ -506,11 +515,11 @@ class AbstractThermodynamicPoint(ABC):
 
             if  i + step < len(self.variables):
 
-                string_to_display += self.__return_variable_unit_str(self.variables[i: i + step], simplified_display)
+                string_to_display += self.__return_variable_unit_str(self.variables[i: i + step])
 
             else:
 
-                string_to_display += self.__return_variable_unit_str(self.variables[i:], simplified_display)
+                string_to_display += self.__return_variable_unit_str(self.variables[i:])
 
             i = i + step
 
@@ -538,27 +547,15 @@ class AbstractThermodynamicPoint(ABC):
 
         return string_to_display
 
-    def __return_variable_unit_str(self, variable_list, simplified_display):
+    def __return_variable_unit_str(self, variable_list):
 
         name_format = " {:15s}"
         variable_format = " {:20s}"
 
-        if not simplified_display:
-
-            BOLD = "\033[1m"
-            RED = "\033[91m"
-            END = "\033[0m"
-
-        else:
-
-            BOLD = ""
-            RED = ""
-            END = ""
-
-        name_bold = BOLD + name_format + END
-        name_bold_red = RED + BOLD + name_format + END
-        variable_bold = BOLD + variable_format + END
-        variable_red = RED + variable_format + END
+        name_bold = ef.bold + name_format + ef.rs
+        name_bold_back = bg.yellow + ef.bold + name_format + ef.rs + bg.rs
+        variable_bold = ef.bold + variable_format + ef.rs
+        variable_back = bg.yellow + variable_format + bg.rs
 
         string_to_display = "\n" + name_format.format("") + " ".join(
 
@@ -570,17 +567,17 @@ class AbstractThermodynamicPoint(ABC):
 
             if unit_system == self.RPHandler.unit_system:
 
-                string_to_display += name_bold_red.format(unit_system)
-                string_to_display += " ".join(
+                string_to_display += name_bold_back.format(unit_system)
+                string_to_display += "".join(
 
-                    variable_red.format(constants.get_units(variable.refprop_name, unit_system)) for variable in variable_list
+                    variable_back.format(constants.get_units(variable.refprop_name, unit_system)) for variable in variable_list
 
                 )
 
             else:
 
                 string_to_display += name_bold.format(unit_system)
-                string_to_display += " ".join(
+                string_to_display += "".join(
 
                     variable_format.format(constants.get_units(variable.refprop_name, unit_system)) for variable in
                     variable_list
