@@ -92,12 +92,13 @@ class RefPropHandler:
 
     def calculate(self, str_in: str, str_out: str, a: float, b: float):
 
-        try:
-            self.refprop.SETFLUIDSdll('*'.join(self.fluids))
-            return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
-        except:
+        self.refprop.SETFLUIDSdll('*'.join(self.fluids))
+        return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
 
-            a= 20
+    def get_composition(self, phase, T, P):
+
+        # TODO
+        return self.composition
 
     def return_units(self, property_name):
 
@@ -322,6 +323,7 @@ class AbstractThermodynamicPoint(ABC):
         if variable is not None:
 
             if variable not in self.calculated_variables:
+
                 self.__calculate_variable(variable)
 
             return variable.value
@@ -340,6 +342,22 @@ class AbstractThermodynamicPoint(ABC):
         except:
 
             return None
+
+    def get_composition(self, phase):
+
+        if self.calculation_ready:
+
+            Q = self.get_variable("Q")
+
+            if 0 < Q < 1:
+
+                T = self.get_variable("T")
+                P = self.get_variable("P")
+                self.RPHandler.get_composition(phase, T, P)
+
+            else:
+
+                return self.composition
 
     def get_unit(self, variable_name: str):
 
