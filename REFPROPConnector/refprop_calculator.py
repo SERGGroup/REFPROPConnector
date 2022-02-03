@@ -1,5 +1,6 @@
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
-import REFPROPConnector.constants as constants
+import REFPROPConnector.Support.constants as constants
+from .Support.resources.file_handler import RP_EXEC
 from abc import ABC, abstractmethod
 from sty import fg, bg, ef, rs
 import warnings, sty
@@ -29,8 +30,8 @@ class RefPropHandler:
         #   Molar Mass:         [kg/kmol]
         #   Heat Capacity:      [kJ/(kg*K)]
 
-        self.refprop = REFPROPFunctionLibrary(constants.RP_EXEC)
-        self.refprop.SETPATHdll(constants.RP_EXEC)
+        self.refprop = REFPROPFunctionLibrary(RP_EXEC)
+        self.refprop.SETPATHdll(RP_EXEC)
 
         self.fluids = fluids
         self.composition = composition
@@ -364,6 +365,33 @@ class AbstractThermodynamicPoint(ABC):
         except:
 
             return None
+
+    def get_derivative(self, num_name: str, den_name: str, fix_name: str):
+
+        if self.calculation_ready:
+
+            info = constants.get_derivative_info(num_name, den_name, fix_name)
+
+            if info is not None:
+
+                rp_codes = info.refprop_codes
+
+                if info.is_fraction:
+
+                    a = self.__calculate_direct(rp_codes[0])
+                    b = self.__calculate_direct(rp_codes[1])
+
+                    return - a / b
+
+                elif info.is_inverse:
+
+                    return 1 / self.__calculate_direct(rp_codes[0])
+
+                else:
+
+                    return self.__calculate_direct(rp_codes[0])
+
+        return None
 
     def get_composition(self, phase):
 

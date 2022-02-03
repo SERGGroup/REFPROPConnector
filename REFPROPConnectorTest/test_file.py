@@ -1,3 +1,4 @@
+from REFPROPConnector.Support.constants import get_refprop_name
 from REFPROPConnector import ThermodynamicPoint
 import unittest
 
@@ -21,6 +22,11 @@ class TestREFPROPConnector(unittest.TestCase):
         tp.list_unit_systems()
         self.assertEqual(True, True)
 
+    def test_search(self):
+
+        rp_name = get_refprop_name("pressure")
+        self.assertEqual("P", rp_name)
+
     def test_copy(self):
 
         tp = ThermodynamicPoint(["air"], [1])
@@ -35,6 +41,17 @@ class TestREFPROPConnector(unittest.TestCase):
         check_different = not(tp.get_variable("h") == new_tp.get_variable("h"))
 
         self.assertEqual(True, check_equal and check_different)
+
+    def test_derivative(self):
+
+        tp = ThermodynamicPoint(["carbon dioxide"], [1])
+
+        tp.set_variable("T", 90)
+        tp.set_variable("P", 15)
+
+        print(tp.get_derivative("T", "P", "H"))
+
+        self.assertEqual(True, True)
 
 
 if __name__ == '__main__':

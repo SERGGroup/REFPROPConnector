@@ -1,2 +1,2 @@
 from REFPROPConnector.refprop_calculator import RefPropHandler, AbstractThermodynamicPoint, ThermodynamicPoint
-from REFPROPConnector.constants import retreive_RP_exec
+from REFPROPConnector.Support.resources.file_handler import retreive_RP_exec
