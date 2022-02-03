@@ -1,7 +1,7 @@
+from google_drive_downloader import GoogleDriveDownloader as gdd
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 import xml.etree.ElementTree as ETree
 from tkinter import filedialog as fd
-import pyrebase.pyrebase as pyrebase
 from abc import ABC, abstractmethod
 import os, requests
 import tkinter as tk
@@ -119,6 +119,7 @@ __FIREBASE_TOKENS = {
 
 
 def _import_refprop_xml_files():
+
     for file_name in [REFPROP_NAMES_FILE]:
 
         file_path = os.path.join(CURRENT_DIR, file_name)
@@ -127,35 +128,39 @@ def _import_refprop_xml_files():
 
             try:
 
-                firebase = pyrebase.initialize_app(__FIREBASE_CONFIG)
-                storage = firebase.storage()
-                storage.child("BHEModel/REFPROP_names.xml").download("", file_path, __FIREBASE_TOKENS[file_name])
+                gdd.download_file_from_google_drive(
 
-                if not os.path.isfile(file_path):
+                    file_id="1mYNKc0v6Zygtv6CJKwIGOPQtLxNG8hsx",
+                    dest_path=file_path,
+                    overwrite=True,
+                    unzip=False
 
-                    url = storage.child("BHEModel/REFPROP_names.xml").get_url(__FIREBASE_TOKENS[file_name])
-                    headers = {"Authorization": "Firebase " + __FIREBASE_TOKENS[file_name]}
-                    r = requests.get(url, stream=True, headers=headers)
-
-                    if r.status_code == 200:
-
-                        return ETree.fromstring(r.content.decode("utf-8"))
-
-                    else:
-
-                        raise Exception("Unable to reach firebase storage, check your internet connection")
+                )
 
             except:
 
-                raise Exception("Unable to reach firebase storage, check your internet connection")
+                warning_message = "\n\n<----------------- !ERROR! ------------------->\n"
+                warning_message += "Unable to download all necessary resources!\n"
+                warning_message += "Check your internet connection and retry!\n"
+
+                raise RuntimeError(warning_message)
 
 
-def _get_refprop_name_xml(file_name) -> ETree.Element:
+def _get_refprop_name_xml(file_name, get_derivatives_xml=False) -> ETree.Element:
+
     _import_refprop_xml_files()
 
     if os.path.isfile(os.path.join(CURRENT_DIR, file_name)):
         tree = ETree.parse(os.path.join(CURRENT_DIR, file_name))
-        return tree.getroot()
+        root = tree.getroot()
+
+        if get_derivatives_xml:
+
+            return root.find("derivates")
+
+        else:
+
+            return root.find("names")
 
 
 class __AbstractTree(ABC):
