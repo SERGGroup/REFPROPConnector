@@ -1,5 +1,6 @@
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
-import REFPROPConnector.constants as constants
+import REFPROPConnector.Support.constants as constants
+from .Support.resources.file_handler import RP_EXEC
 from abc import ABC, abstractmethod
 from sty import fg, bg, ef, rs
 import warnings, sty
@@ -29,8 +30,8 @@ class RefPropHandler:
         #   Molar Mass:         [kg/kmol]
         #   Heat Capacity:      [kJ/(kg*K)]
 
-        self.refprop = REFPROPFunctionLibrary(constants.RP_EXEC)
-        self.refprop.SETPATHdll(constants.RP_EXEC)
+        self.refprop = REFPROPFunctionLibrary(RP_EXEC)
+        self.refprop.SETPATHdll(RP_EXEC)
 
         self.fluids = fluids
         self.composition = composition
@@ -92,12 +93,13 @@ class RefPropHandler:
 
     def calculate(self, str_in: str, str_out: str, a: float, b: float):
 
-        try:
-            self.refprop.SETFLUIDSdll('*'.join(self.fluids))
-            return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
-        except:
+        self.refprop.SETFLUIDSdll('*'.join(self.fluids))
+        return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
 
-            a= 20
+    def get_composition(self, phase, T, P):
+
+        # TODO
+        return self.composition
 
     def return_units(self, property_name):
 
@@ -188,6 +190,12 @@ class AbstractThermodynamicPoint(ABC):
     def __init__(self, refprop: RefPropHandler, other_variables="all", calculate_on_need="all"):
 
         self.RPHandler = refprop
+        self.inputs = {
+
+            "other_variables": other_variables,
+            "calculate_on_need": calculate_on_need
+
+        }
 
         self.__initialize_state_variables()
         self.__initialize_other_variables(other_variables)
@@ -278,6 +286,13 @@ class AbstractThermodynamicPoint(ABC):
 
     def __calculate_variable(self, variable):
 
+        if self.calculation_ready:
+
+            variable.value = self.__calculate_direct(variable.refprop_name)
+            self.calculated_variables.append(variable)
+
+    def __calculate_direct(self, REFPROP_CODE):
+
         global GLOBALCounter
 
         if self.calculation_ready:
@@ -287,12 +302,18 @@ class AbstractThermodynamicPoint(ABC):
             not_none_variables = self.not_none_variables
             input_str = not_none_variables[0].refprop_name + not_none_variables[1].refprop_name
 
-            variable.value = self.RPHandler.calculate(input_str,
-                                                      variable.refprop_name,
-                                                      not_none_variables[0].value,
-                                                      not_none_variables[1].value)
+            value = self.RPHandler.calculate(
 
-            self.calculated_variables.append(variable)
+                input_str,
+                REFPROP_CODE,
+                not_none_variables[0].value,
+                not_none_variables[1].value
+
+            )
+
+            return value
+
+        return None
 
     @abstractmethod
     def other_calculation(self):
@@ -305,14 +326,17 @@ class AbstractThermodynamicPoint(ABC):
         for variable in self.state_var_list:
 
             if variable.refprop_name == input_refprop_name:
+
                 variable.value = variable_value
                 variable.order = 0
+
                 break
 
         self.state_var_list.sort()
         self.reset_state_var_order()
 
         if self.calculation_ready:
+
             self.__calculate()
 
     def get_variable(self, variable_name: str):
@@ -322,6 +346,7 @@ class AbstractThermodynamicPoint(ABC):
         if variable is not None:
 
             if variable not in self.calculated_variables:
+
                 self.__calculate_variable(variable)
 
             return variable.value
@@ -340,6 +365,49 @@ class AbstractThermodynamicPoint(ABC):
         except:
 
             return None
+
+    def get_derivative(self, num_name: str, den_name: str, fix_name: str):
+
+        if self.calculation_ready:
+
+            info = constants.get_derivative_info(num_name, den_name, fix_name)
+
+            if info is not None:
+
+                rp_codes = info.refprop_codes
+
+                if info.is_fraction:
+
+                    a = self.__calculate_direct(rp_codes[0])
+                    b = self.__calculate_direct(rp_codes[1])
+
+                    return - a / b
+
+                elif info.is_inverse:
+
+                    return 1 / self.__calculate_direct(rp_codes[0])
+
+                else:
+
+                    return self.__calculate_direct(rp_codes[0])
+
+        return None
+
+    def get_composition(self, phase):
+
+        if self.calculation_ready:
+
+            Q = self.get_variable("Q")
+
+            if 0 < Q < 1:
+
+                T = self.get_variable("T")
+                P = self.get_variable("P")
+                self.RPHandler.get_composition(phase, T, P)
+
+            else:
+
+                return self.composition
 
     def get_unit(self, variable_name: str):
 
@@ -367,6 +435,7 @@ class AbstractThermodynamicPoint(ABC):
     def calculation_ready(self):
 
         counter = 0
+
         for variable in self.state_var_list:
 
             if not variable.is_empty:
@@ -447,6 +516,31 @@ class AbstractThermodynamicPoint(ABC):
 
         if reset:
             GLOBALCounter = 0
+
+    @abstractmethod
+    def duplicate(self):
+        """
+            used to create a copy of the point for further calculations
+            in programming it in subclasses use the input dictionary to recover original inputs
+
+            don't forget to copy the current state defined by the user:
+
+                self.copy_state_to(new_point)
+
+        """
+        pass
+
+    def copy_state_to(self, target_point):
+
+        for variable in self.state_var_list[:2]:
+
+            if variable.is_empty:
+                break
+
+            else:
+                target_point.set_variable(variable.refprop_name, variable.value)
+
+        return target_point
 
     def list_properties(self):
 
@@ -602,3 +696,18 @@ class ThermodynamicPoint(AbstractThermodynamicPoint):
     def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all", unit_system="SI WITH C"):
 
         return ThermodynamicPoint(fluids, composition, other_variables, calculate_on_need, unit_system)
+
+    def duplicate(self):
+
+        tp = ThermodynamicPoint(
+
+            self.RPHandler.fluids,
+            self.RPHandler.composition,
+            unit_system=self.RPHandler.unit_system,
+            other_variables=self.inputs["other_variables"],
+            calculate_on_need=self.inputs["calculate_on_need"]
+
+        )
+
+        self.copy_state_to(tp)
+        return tp
