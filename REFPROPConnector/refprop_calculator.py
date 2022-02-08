@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from sty import fg, bg, ef, rs
 import warnings, sty
 
-
 GLOBALCounter = 0
 
 
@@ -145,6 +144,26 @@ class RefPropHandler:
 
         self.__initialize_reference_state()
 
+    @property
+    def T_0_in_K(self):
+
+        T_unit = self.return_units("T")
+
+        if T_unit == "C":
+
+            # Celsius
+            return self.T_0 + 273.15
+
+        elif T_unit == "K":
+
+            # Kelvin
+            return self.T_0
+
+        else:
+
+            # Fahrenheit
+            return (self.T_0 - 32) / 9 * 5 + 273.15
+
 
 class ThermodynamicVariable:
 
@@ -182,7 +201,8 @@ class ThermodynamicVariable:
 class AbstractThermodynamicPoint(ABC):
 
     @classmethod
-    def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all", unit_system="SI WITH C"):
+    def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all",
+                        unit_system="SI WITH C"):
 
         RP = RefPropHandler(fluids, composition, unit_system)
         return cls(RP, other_variables, calculate_on_need)
@@ -353,10 +373,10 @@ class AbstractThermodynamicPoint(ABC):
 
         if variable_name == "exergy":
 
-            h = self.get_variable("h")
-            s = self.get_variable("s")
+            dh = self.get_variable("h") - self.RPHandler.H_0
+            ds = self.get_variable("s") - self.RPHandler.S_0
 
-            return (h - self.RPHandler.H_0) - self.RPHandler.T_0 * (s - self.RPHandler.S_0)
+            return dh - self.RPHandler.T_0_in_K * ds
 
         try:
 
@@ -480,7 +500,7 @@ class AbstractThermodynamicPoint(ABC):
         return return_list
 
     @property
-    def state_variables_refprop_names(self)->list:
+    def state_variables_refprop_names(self) -> list:
 
         return_list = list()
         for variable in self.state_var_list:
@@ -664,7 +684,8 @@ class AbstractThermodynamicPoint(ABC):
                 string_to_display += name_back.format(unit_system)
                 string_to_display += "".join(
 
-                    variable_back.format(constants.get_units(variable.refprop_name, unit_system)) for variable in variable_list
+                    variable_back.format(constants.get_units(variable.refprop_name, unit_system)) for variable in
+                    variable_list
 
                 )
 
@@ -685,7 +706,8 @@ class AbstractThermodynamicPoint(ABC):
 
 class ThermodynamicPoint(AbstractThermodynamicPoint):
 
-    def __init__(self, fluids: list, composition: list, other_variables="all", calculate_on_need="all", unit_system="SI WITH C"):
+    def __init__(self, fluids: list, composition: list, other_variables="all", calculate_on_need="all",
+                 unit_system="SI WITH C"):
 
         RP = RefPropHandler(fluids, composition, unit_system)
         super().__init__(RP, other_variables=other_variables, calculate_on_need=calculate_on_need)
@@ -693,7 +715,8 @@ class ThermodynamicPoint(AbstractThermodynamicPoint):
     def other_calculation(self):
         pass
 
-    def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all", unit_system="SI WITH C"):
+    def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all",
+                        unit_system="SI WITH C"):
 
         return ThermodynamicPoint(fluids, composition, other_variables, calculate_on_need, unit_system)
 

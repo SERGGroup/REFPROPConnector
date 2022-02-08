@@ -19,14 +19,14 @@
                 <unit name = "MASS SI"          unit = "MPa" />
                 <unit name = "SI WITH C"        unit = "MPa" />
 
-                <unit name = "MOLAR BASE SI"    unit = "Pa" />
-                <unit name = "MASS BASE SI"     unit = "Pa" />
-                <unit name = "ENGLISH"          unit = "psia" />
-                <unit name = "MOLAR ENGLISH"    unit = "psia" />
+                <unit name = "MOLAR BASE SI"    unit = "Pa"  />
+                <unit name = "MASS BASE SI"     unit = "Pa"  />
+                <unit name = "ENGLISH"          unit = "psia"/>
+                <unit name = "MOLAR ENGLISH"    unit = "psia"/>
 
                 <unit name = "MKS"              unit = "kPa" />
                 <unit name = "CGS"              unit = "MPa" />
-                <unit name = "MIXED"            unit = "psia" />
+                <unit name = "MIXED"            unit = "psia"/>
                 <unit name = "MEUNITS"          unit = "bar" />
 
             </units>
