@@ -53,6 +53,20 @@ class TestREFPROPConnector(unittest.TestCase):
 
         self.assertEqual(True, True)
 
+    def test_reference_state(self):
+
+        tp = ThermodynamicPoint(["carbon dioxide"], [1])
+
+        T_ref = 10
+        tp_ref = tp.duplicate()
+        tp_ref.set_variable("T", T_ref)
+        tp_ref.set_variable("P", 0.101325)
+
+        tp.reference_state = tp_ref
+        tp.set_unit_system("MASS BASE SI")
+
+        self.assertEqual(tp.reference_state.get_variable("T"), T_ref + 273.15)
+
 
 if __name__ == '__main__':
     unittest.main()

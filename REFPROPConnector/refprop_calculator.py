@@ -39,53 +39,23 @@ class RefPropHandler:
         self.TC = self.calculate("", "TC", 0, 0)
         self.PC = self.calculate("", "PC", 0, 0)
 
-    def __initialize_reference_state(self):
+    def set_reference_state(self, T_0=20, P_0=101325, T_0unit="C", P_0unit="Pa", old_unit_system=None):
 
         T_unit = self.return_units("T")
         P_unit = self.return_units("P")
 
-        T_0 = 20        # °C
-        P_0 = 101325    # Pa
+        if old_unit_system is not None:
 
-        if T_unit == "C":
+            T_unit_old = self.return_units("T", unit_system=old_unit_system)
+            P_unit_old = self.return_units("P", unit_system=old_unit_system)
 
-            # Celsius
-            self.T_0 = T_0
-
-        elif T_unit == "K":
-
-            # Kelvin
-            self.T_0 = T_0 + 273.15
+            self.T_0 = self.__convert_T(self.T_0, T_unit_old, T_unit)
+            self.P_0 = self.__convert_P(self.P_0, P_unit_old, P_unit)
 
         else:
 
-            # Fahrenheit
-            self.T_0 = T_0 * 9 / 5 + 32
-
-        if P_unit == "Pa":
-
-            # Pascal
-            self.P_0 = P_0
-
-        elif P_unit == "kPa":
-
-            # kiloPascal
-            self.P_0 = P_0 / 1000
-
-        elif P_unit == "bar":
-
-            # bar
-            self.P_0 = P_0 / 100000
-
-        elif P_unit == "MPa":
-
-            # bar
-            self.P_0 = P_0 / 100000
-
-        else:
-
-            # PSI
-            self.P_0 = P_0 / 6894.7572931783
+            self.T_0 = self.__convert_T(T_0, T_0unit, T_unit)
+            self.P_0 = self.__convert_P(P_0, P_0unit, P_unit)
 
         self.H_0 = self.calculate("TP", "H", self.T_0, self.P_0)
         self.S_0 = self.calculate("TP", "s", self.T_0, self.P_0)
@@ -100,9 +70,15 @@ class RefPropHandler:
         # TODO
         return self.composition
 
-    def return_units(self, property_name):
+    def return_units(self, property_name, unit_system=None):
 
-        return_value = constants.get_units(property_name, self.unit_system)
+        if unit_system is None:
+
+            return_value = constants.get_units(property_name, self.unit_system)
+
+        else:
+
+            return_value = constants.get_units(property_name, unit_system)
 
         if "Unknown" in return_value:
 
@@ -115,11 +91,15 @@ class RefPropHandler:
     @property
     def unit_system(self):
 
-        return self.__unit_system
+        try:
+            return self.__unit_system
+        except:
+            return None
 
     @unit_system.setter
     def unit_system(self, unit_system_input):
 
+        old_unit_system = self.unit_system
         self.__unit_system = unit_system_input
 
         try:
@@ -142,27 +122,106 @@ class RefPropHandler:
             warnings.warn(warning_message)
             self.__unit_system = "SI WITH C"
 
-        self.__initialize_reference_state()
+        self.set_reference_state(old_unit_system=old_unit_system)
 
     @property
     def T_0_in_K(self):
 
         T_unit = self.return_units("T")
+        return self.__convert_T(self.T_0, T_unit, "K")
 
-        if T_unit == "C":
+    @staticmethod
+    def __convert_T_in_C(T, original_unit):
+
+        if original_unit == "C":
 
             # Celsius
-            return self.T_0 + 273.15
+            return T
 
-        elif T_unit == "K":
+        elif original_unit == "K":
 
             # Kelvin
-            return self.T_0
+            return T - 273.15
 
         else:
 
             # Fahrenheit
-            return (self.T_0 - 32) / 9 * 5 + 273.15
+            return (T - 32) / 9 * 5
+
+    @staticmethod
+    def __convert_P_in_Pa(P, original_unit):
+
+        if original_unit == "Pa":
+
+            # Pascal
+            return P
+
+        elif original_unit == "kPa":
+
+            # kiloPascal
+            return P * 10 ** 3
+
+        elif original_unit == "bar":
+
+            # bar
+            return P * 10 ** 5
+
+        elif original_unit == "MPa":
+
+            # bar
+            return P * 10 ** 6
+
+        else:
+
+            # PSI
+            return P * 6894.7572931783
+
+    def __convert_T(self, T, original_unit, final_unit):
+
+        T_c = self.__convert_T_in_C(T, original_unit)
+        if final_unit == "C":
+
+            # Celsius
+            return T_c
+
+        elif final_unit == "K":
+
+            # Kelvin
+            return T_c + 273.15
+
+        else:
+
+            # Fahrenheit
+            return T_c * 9 / 5 + 32
+
+    def __convert_P(self, P, original_unit, final_unit):
+
+        P_pa = self.__convert_P_in_Pa(P, original_unit)
+
+        if final_unit == "Pa":
+
+            # Pascal
+            return P_pa
+
+        elif final_unit == "kPa":
+
+            # kiloPascal
+            return P_pa / 10 ** 3
+
+        elif final_unit == "bar":
+
+            # bar
+            return P_pa / 10 ** 5
+
+        elif final_unit == "MPa":
+
+            # bar
+            return P_pa / 10 ** 6
+
+        else:
+
+            # PSI
+            return P_pa / 6894.7572931783
 
 
 class ThermodynamicVariable:
@@ -219,7 +278,7 @@ class AbstractThermodynamicPoint(ABC):
 
         self.__initialize_state_variables()
         self.__initialize_other_variables(other_variables)
-        self.reset_state_var_order()
+        self.__reset_state_var_order()
 
         self.calculated_variables = list()
         self.__initialize_calculate_on_need_variables(calculate_on_need)
@@ -353,7 +412,7 @@ class AbstractThermodynamicPoint(ABC):
                 break
 
         self.state_var_list.sort()
-        self.reset_state_var_order()
+        self.__reset_state_var_order()
 
         if self.calculation_ready:
 
@@ -433,6 +492,10 @@ class AbstractThermodynamicPoint(ABC):
 
         return self.RPHandler.return_units(variable_name)
 
+    def set_unit_system(self, unit_system):
+
+        self.RPHandler.unit_system = unit_system
+
     def __get_variable_from_name(self, variable_name: str):
 
         input_refprop_name = constants.get_refprop_name(variable_name.lower())
@@ -444,7 +507,7 @@ class AbstractThermodynamicPoint(ABC):
 
         return None
 
-    def reset_state_var_order(self):
+    def __reset_state_var_order(self):
 
         counter = 1
         for variable in self.state_var_list:
@@ -522,6 +585,27 @@ class AbstractThermodynamicPoint(ABC):
     def composition(self):
 
         return self.RPHandler.composition
+
+    @property
+    def reference_state(self):
+
+        reference = self.duplicate()
+        reference.set_variable("T", self.RPHandler.T_0)
+        reference.set_variable("P", self.RPHandler.P_0)
+
+        return reference
+
+    @reference_state.setter
+    def reference_state(self, state):
+
+        self.RPHandler.set_reference_state(
+
+            T_0 = state.get_variable("T"),
+            P_0 = state.get_variable("P"),
+            T_0unit = state.get_unit("T"),
+            P_0unit = state.get_unit("P")
+
+        )
 
     @composition.setter
     def composition(self, new_composition: list):
