@@ -67,6 +67,24 @@ class TestREFPROPConnector(unittest.TestCase):
 
         self.assertEqual(tp.reference_state.get_variable("T"), T_ref + 273.15)
 
+    def test_QH_flash(self):
+
+        tp = ThermodynamicPoint(["water"], [1])
+
+        tp.set_variable("T", 150)
+        tp.set_variable("Q", 0)
+        h_new = tp.get_variable("h")
+
+        new_state = tp.duplicate()
+        new_state.set_variable("Q", 0.05)
+        new_state.set_variable("h", h_new)
+
+        print("{} - {}".format(
+
+            tp.get_variable("P"),
+            new_state.get_variable("P")
+
+        ))
 
 if __name__ == '__main__':
     unittest.main()
