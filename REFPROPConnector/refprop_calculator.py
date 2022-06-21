@@ -8,8 +8,12 @@ import warnings, sty
 
 
 GLOBALCounter = 0
-CODES_TO_BE_ITERATED = ["HQ", "SQ", "EQ",
-                        "QH", "QS", "QE"]
+CODES_TO_BE_ITERATED = [
+
+    "HQ", "SQ", "EQ",
+    "QH", "QS", "QE"
+
+]
 
 
 class QualityIteration:
@@ -205,17 +209,24 @@ class RefPropHandler:
 
         global GLOBALCounter
 
-        if str_in not in CODES_TO_BE_ITERATED:
-
-            GLOBALCounter += 1
-
-            self.refprop.SETFLUIDSdll('*'.join(self.fluids))
-            return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
-
-        else:
+        if str_in in CODES_TO_BE_ITERATED:
 
             qi = QualityIteration(self, str_in, str_out, a, b)
             return qi.result
+
+        if str_out == "Q":
+
+            if self.unit_is_mass_based:
+
+                str_out = "QMASS"
+
+            else:
+
+                str_out = "QMOLE"
+
+        GLOBALCounter += 1
+        self.refprop.SETFLUIDSdll('*'.join(self.fluids))
+        return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
 
     def get_composition(self, phase, T, P):
 
@@ -275,6 +286,11 @@ class RefPropHandler:
             self.__unit_system = "SI WITH C"
 
         self.set_reference_state(old_unit_system=old_unit_system)
+
+    @property
+    def unit_is_mass_based(self):
+
+        return not ("mol" in self.return_units("s"))
 
     @property
     def T_0_in_K(self):

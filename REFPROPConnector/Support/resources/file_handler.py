@@ -55,6 +55,7 @@ def retreive_RP_exec(failure_possible=True):
         else:
 
             with open(__REFPROP_PATH_FILE, "w") as f:
+
                 f.write(__RP_PATH)
 
             return __RP_PATH
@@ -106,10 +107,10 @@ def _import_refprop_xml_files():
 
             gdd.download_file_from_google_drive(
 
-                file_id="1mYNKc0v6Zygtv6CJKwIGOPQtLxNG8hsx",
+                file_id="1UDK4M4pVmdffBKNyB_06dM2l7EnnoI3H",
                 dest_path=file_path,
                 overwrite=True,
-                unzip=False
+                unzip=True
 
             )
 

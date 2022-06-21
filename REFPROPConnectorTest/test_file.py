@@ -86,5 +86,26 @@ class TestREFPROPConnector(unittest.TestCase):
 
         ))
 
+    def test_PH_flash(self):
+
+        tp = ThermodynamicPoint(["water"], [1])
+
+        tp.set_variable("T", 150)
+        tp.set_variable("Q", 0.5)
+        h_new = tp.get_variable("h")
+        s_new = tp.get_variable("s")
+
+        new_state = tp.duplicate()
+        new_state.set_variable("s", s_new)
+        new_state.set_variable("h", h_new)
+
+        print("{} - {}".format(
+
+            tp.get_variable("q"),
+            new_state.get_variable("q")
+
+        ))
+
+
 if __name__ == '__main__':
     unittest.main()
