@@ -1,4 +1,4 @@
-from version import VERSION
+from REFPROPConnector.version import VERSION
 from setuptools import setup
 from os import path, listdir
 
