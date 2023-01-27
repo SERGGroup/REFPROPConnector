@@ -293,6 +293,11 @@ class RefPropHandler:
         return not ("mol" in self.return_units("s"))
 
     @property
+    def rp_version(self):
+
+        return self.refprop.RPVersion()
+
+    @property
     def T_0_in_K(self):
 
         T_unit = self.return_units("T")
@@ -970,11 +975,14 @@ class AbstractThermodynamicPoint(ABC):
 
 class ThermodynamicPoint(AbstractThermodynamicPoint):
 
-    def __init__(self, fluids: list, composition: list, other_variables="all", calculate_on_need="all",
+    def __init__(self, fluids: list, composition: list, rp_handler=None, other_variables="all", calculate_on_need="all",
                  unit_system="SI WITH C"):
 
-        RP = RefPropHandler(fluids, composition, unit_system)
-        super().__init__(RP, other_variables=other_variables, calculate_on_need=calculate_on_need)
+        if rp_handler in None:
+
+            rp_handler = RefPropHandler(fluids, composition, unit_system)
+
+        super().__init__(rp_handler, other_variables=other_variables, calculate_on_need=calculate_on_need)
 
     def other_calculation(self):
         pass
@@ -990,6 +998,7 @@ class ThermodynamicPoint(AbstractThermodynamicPoint):
 
             self.RPHandler.fluids,
             self.RPHandler.composition,
+            rp_handler=self.RPHandler,
             unit_system=self.RPHandler.unit_system,
             other_variables=self.inputs["other_variables"],
             calculate_on_need=self.inputs["calculate_on_need"]
