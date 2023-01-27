@@ -978,7 +978,7 @@ class ThermodynamicPoint(AbstractThermodynamicPoint):
     def __init__(self, fluids: list, composition: list, rp_handler=None, other_variables="all", calculate_on_need="all",
                  unit_system="SI WITH C"):
 
-        if rp_handler in None:
+        if rp_handler is None:
 
             rp_handler = RefPropHandler(fluids, composition, unit_system)
 
