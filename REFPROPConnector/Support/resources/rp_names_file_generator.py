@@ -1,4 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+import os
+
+__CURR_DIR = os.path.dirname(__file__)
+__RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 <data>
 
     <names>
@@ -419,3 +422,12 @@
     </derivatives>
 
 </data>
+"""
+
+def generate_rp_name_file():
+
+    rp_names_path = os.path.join(__CURR_DIR, "REFPROP_names.xml")
+
+    with open(rp_names_path, "w") as file:
+
+        file.write(__RP_NAMES_TXT)
