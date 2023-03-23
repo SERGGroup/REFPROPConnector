@@ -1,4 +1,4 @@
-from google_drive_downloader import GoogleDriveDownloader as gdd
+from REFPROPConnector.Support.resources.rp_names_file_generator import generate_rp_name_file
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 import xml.etree.ElementTree as ETree
 from tkinter import filedialog as fd
@@ -103,25 +103,7 @@ def _import_refprop_xml_files():
 
     if not os.path.isfile(file_path):
 
-        try:
-
-            gdd.download_file_from_google_drive(
-
-                file_id="1UDK4M4pVmdffBKNyB_06dM2l7EnnoI3H",
-                dest_path=file_path,
-                overwrite=True,
-                unzip=True
-
-            )
-
-        except:
-
-            warning_message = "\n\n<----------------- !ERROR! ------------------->\n"
-            warning_message += "Unable to download all necessary resources!\n"
-            warning_message += "Check your internet connection and retry!\n"
-
-            raise RuntimeError(warning_message)
-
+        generate_rp_name_file()
 
 def get_refprop_name_xml(get_derivatives_xml=False) -> ETree.Element:
 
