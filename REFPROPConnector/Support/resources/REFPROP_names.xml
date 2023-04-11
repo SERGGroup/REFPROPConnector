@@ -285,6 +285,34 @@
             </units>
 
         </refprop_name>
+        <refprop_name name = "CP0">
+
+            <std_names>
+
+                <std_name name="cp0"/>
+                <std_name name="ideal_isochoric_heat_capacity"/>
+
+            </std_names>
+            <units>
+
+                <unit name = "DEFAULT"          unit = "J/(mol * K)" />
+                <unit name = "MOLE SI"          unit = "J/(mol * K)" />
+                <unit name = "MASS SI"          unit = "J/(g * K)" />
+                <unit name = "SI WITH C"        unit = "J/(g * K)" />
+
+                <unit name = "MOLAR BASE SI"    unit = "J/(mol * K)" />
+                <unit name = "MASS BASE SI"     unit = "J/(kg * K)" />
+                <unit name = "ENGLISH"          unit = "BTU/(lbm * R)" />
+                <unit name = "MOLAR ENGLISH"    unit = "BTU/(lbmol * R)" />
+
+                <unit name = "MKS"              unit = "J/(g * K)" />
+                <unit name = "CGS"              unit = "J/(g * K)" />
+                <unit name = "MIXED"            unit = "J/(g * K)" />
+                <unit name = "MEUNITS"          unit = "J/(g * K)" />
+
+            </units>
+
+        </refprop_name>
         <refprop_name name = "CV">
 
             <std_names>
