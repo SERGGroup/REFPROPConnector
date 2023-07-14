@@ -1,5 +1,6 @@
+from REFPROPConnector import ThermodynamicPoint, DiagramPlotter, DiagramPlotterOptions
 from REFPROPConnector.Support.constants import get_refprop_name
-from REFPROPConnector import ThermodynamicPoint
+from matplotlib import pyplot as plt
 import unittest
 
 
@@ -106,6 +107,29 @@ class TestREFPROPConnector(unittest.TestCase):
 
         ))
 
+    def test_diagram_plotter(self):
+
+        tp = ThermodynamicPoint(["Carbon Dioxide"], [1])
+        options = DiagramPlotterOptions(
+
+            x_variable="T",
+            x_var_range = (0, 150), x_var_log=False,
+            y_var_range = (4, 15),
+            isoline_ranges={
+
+                "rho": (50, 1000, 25),
+                "H": (200, 550, 25)
+
+            }
+
+        )
+        plotter = DiagramPlotter(tp, options=options)
+        plotter.calculate()
+
+        fig, (ax_1) = plt.subplots(1, 1, dpi=200)
+        fig.set_size_inches(10, 5)
+        plotter.plot(ax_1)
+        plt.show()
 
 if __name__ == '__main__':
     unittest.main()

@@ -9,11 +9,15 @@ installed and properly working.
 
 The scope of this library is to make the usage of the refprop wrappers simpler.
 
+### Download and installation 
+
 The beta version can be downloaded using __PIP__:
 
 ```
 pip install REFPROP_connector
 ```
+
+### First Steps
 Once the installation has been completed the user can import the tool and initialize the connector itself.
 ```python
 from REFPROPConnector import ThermodynamicPoint
@@ -34,6 +38,7 @@ from REFPROPConnector import retreive_RP_exec
 retreive_RP_exec()
 ```
     
+### Basic Usage
 
 Each _ThermodynamicPoint_ class instance represent a thermodynamic state, hence you had to provide at least 
 __two indipendent state variables__ in order to calculate the others.
@@ -49,6 +54,8 @@ tp.set_variable("Q", 0.5)          # vapour quality for multiphase condition
 
 T_sat = tp.get_variable("T")       # saturation temperature in celsius (100 °C)
 ```
+
+### Abstract Class
 
 _AbstractThermodynamicPoint_ is a class that can be overwritten in order to perform some calculation once both 
 independent state variable have been set. It can be useful for example for the evaluation of the reynolds number 
@@ -84,7 +91,7 @@ if __name__ == "__main__":
     """
     
         The following line will return 0. as the function "other_calculation" 
-        is called only when 2 independent state variable is provided 
+        is called only when 2 independent state variables are provided 
         
     """
     print(section.get_variable("Re"))   
@@ -100,6 +107,8 @@ if __name__ == "__main__":
     print(section.get_variable("Re"))
 ```
 
+### Unit system and state variable list
+
 Variable that can be calculated can be listed using _list_properties_ method from both _ThermodynamicPoint_ and 
 _AbstractThermodynamicPoint_ (the name __is not case-sensitive__). Finally, user can also select the unit system to be 
 used in the calculation, a list of possible unit system can be revived calling the method _list_unit_systems()_ 
@@ -112,11 +121,46 @@ tp = ThermodynamicPoint(["water"], [1.], unit_system="MASS BASE SI")
 tp.list_properties()
 tp.list_unit_systems()
 ```
-Defaul unit system is __SI with C__
+Default unit system is __SI with C__
 
-For other information please contact: _pietro.ungar@unifi.it_
+### Diagram Plotter
+The _DiagramPlotter_ class can be used to plot a specific state diagram that can be then used to describe state 
+transformations. The diagram can be personalized using the _DiagramPlotterOptions_ class. 
+The following is an example on how to use the class.
+
+
+```python
+from REFPROPConnector import (
+    
+    ThermodynamicPoint, 
+    DiagramPlotter, 
+    DiagramPlotterOptions
+
+)
+
+tp = ThermodynamicPoint(["Carbon Dioxide"], [1])
+options = DiagramPlotterOptions(
+
+    x_variable="T",
+    x_var_range = (0, 150), x_var_log=False,
+    y_var_range = (4, 15),
+    isoline_ranges={
+
+        "rho": (50, 1000, 25),
+        "H": (200, 550, 25)
+
+    }
+
+)
+plotter = DiagramPlotter(tp, options=options)
+plotter.calculate()
+
+fig, (ax_1) = plt.subplots(1, 1, dpi=200)
+fig.set_size_inches(10, 5)
+plotter.plot(ax_1)
+plt.show()
+```
 
 __-------------------------- !!! THIS IS A BETA VERSION !!! --------------------------__ 
 
 please report any bug or problems in the installation to _pietro.ungar@unifi.it_<br/>
-for further information visit: https://tinyurl.com/SERG-3ETool
