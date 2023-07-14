@@ -1,7 +1,7 @@
-from setuptools import setup
 from os import path, listdir
+import setuptools
 
-VERSION = "0.3.1"
+VERSION = "0.3.3"
 
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
@@ -39,7 +39,7 @@ def append_sub_dir(element_path, input_list: list, parent_name=None) -> list:
     return input_list
 
 
-setup(
+setuptools.setup(
 
     name='REFPROP_connector',
     version=VERSION,
@@ -67,9 +67,11 @@ setup(
     install_requires=[
 
         'setuptools',
+        'matplotlib',
         'ctREFPROP',
         'requests',
         'future',
+        'tqdm',
         'sty'
 
     ],
