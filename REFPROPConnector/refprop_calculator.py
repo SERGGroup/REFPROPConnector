@@ -1,5 +1,5 @@
+from .Tools.units_converter import convert_variable, constants
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
-import REFPROPConnector.Support.constants as constants
 from .Support.resources.file_handler import RP_EXEC
 from abc import ABC, abstractmethod
 from sty import fg, bg, ef, rs
@@ -194,13 +194,13 @@ class RefPropHandler:
             T_unit_old = self.return_units("T", unit_system=old_unit_system)
             P_unit_old = self.return_units("P", unit_system=old_unit_system)
 
-            self.T_0 = self.__convert_T(self.T_0, T_unit_old, T_unit)
-            self.P_0 = self.__convert_P(self.P_0, P_unit_old, P_unit)
+            self.T_0, info = convert_variable(self.T_0, "T",  T_unit_old, T_unit)
+            self.P_0, info = convert_variable(self.P_0, "p",  P_unit_old, P_unit)
 
         else:
 
-            self.T_0 = self.__convert_T(T_0, T_0unit, T_unit)
-            self.P_0 = self.__convert_P(P_0, P_0unit, P_unit)
+            self.T_0, info = convert_variable(T_0, "T", T_0unit, T_unit)
+            self.P_0, info = convert_variable(P_0, "p", P_0unit, P_unit)
 
         self.H_0 = self.calculate("TP", "H", self.T_0, self.P_0)
         self.S_0 = self.calculate("TP", "s", self.T_0, self.P_0)
@@ -301,100 +301,8 @@ class RefPropHandler:
     def T_0_in_K(self):
 
         T_unit = self.return_units("T")
-        return self.__convert_T(self.T_0, T_unit, "K")
-
-    @staticmethod
-    def __convert_T_in_C(T, original_unit):
-
-        if original_unit == "C":
-
-            # Celsius
-            return T
-
-        elif original_unit == "K":
-
-            # Kelvin
-            return T - 273.15
-
-        else:
-
-            # Fahrenheit
-            return (T - 32) / 9 * 5
-
-    @staticmethod
-    def __convert_P_in_Pa(P, original_unit):
-
-        if original_unit == "Pa":
-
-            # Pascal
-            return P
-
-        elif original_unit == "kPa":
-
-            # kiloPascal
-            return P * 10 ** 3
-
-        elif original_unit == "bar":
-
-            # bar
-            return P * 10 ** 5
-
-        elif original_unit == "MPa":
-
-            # bar
-            return P * 10 ** 6
-
-        else:
-
-            # PSI
-            return P * 6894.7572931783
-
-    def __convert_T(self, T, original_unit, final_unit):
-
-        T_c = self.__convert_T_in_C(T, original_unit)
-        if final_unit == "C":
-
-            # Celsius
-            return T_c
-
-        elif final_unit == "K":
-
-            # Kelvin
-            return T_c + 273.15
-
-        else:
-
-            # Fahrenheit
-            return T_c * 9 / 5 + 32
-
-    def __convert_P(self, P, original_unit, final_unit):
-
-        P_pa = self.__convert_P_in_Pa(P, original_unit)
-
-        if final_unit == "Pa":
-
-            # Pascal
-            return P_pa
-
-        elif final_unit == "kPa":
-
-            # kiloPascal
-            return P_pa / 10 ** 3
-
-        elif final_unit == "bar":
-
-            # bar
-            return P_pa / 10 ** 5
-
-        elif final_unit == "MPa":
-
-            # bar
-            return P_pa / 10 ** 6
-
-        else:
-
-            # PSI
-            return P_pa / 6894.7572931783
+        TO, info = convert_variable(self.T_0, "T",  T_unit, "K")
+        return TO
 
 
 class ThermodynamicVariable:
@@ -410,6 +318,20 @@ class ThermodynamicVariable:
     @property
     def is_empty(self):
         return self.value is None
+
+    def convert(self, rp_handler:RefPropHandler, to_unit_system):
+
+        value, info = convert_variable(
+
+            self.value, self.name,
+            rp_handler.return_units(self.name),
+            rp_handler.return_units(self.name, to_unit_system)
+
+        )
+
+        # TODO implement conversion mass / mole based system
+
+        return value
 
     def __gt__(self, other):
         # enables comparison
@@ -677,10 +599,6 @@ class AbstractThermodynamicPoint(ABC):
 
         return self.RPHandler.return_units(variable_name)
 
-    def set_unit_system(self, unit_system):
-
-        self.RPHandler.unit_system = unit_system
-
     def __get_variable_from_name(self, variable_name: str):
 
         input_refprop_name = constants.get_refprop_name(variable_name.lower())
@@ -827,7 +745,12 @@ class AbstractThermodynamicPoint(ABC):
                 break
 
             else:
-                target_point.set_variable(variable.refprop_name, variable.value)
+
+                target_point.set_variable(variable.refprop_name, variable.convert(
+
+                    self.RPHandler, target_point.RPHandler.unit_system
+
+                ))
 
         return target_point
 
@@ -1000,6 +923,30 @@ class ThermodynamicPoint(AbstractThermodynamicPoint):
             self.RPHandler.composition,
             rp_handler=self.RPHandler,
             unit_system=self.RPHandler.unit_system,
+            other_variables=self.inputs["other_variables"],
+            calculate_on_need=self.inputs["calculate_on_need"]
+
+        )
+
+        self.copy_state_to(tp)
+        return tp
+
+    def get_alternative_unit_system(self, new_unit_system):
+
+        rp_handler = RefPropHandler(
+
+            self.RPHandler.fluids,
+            self.RPHandler.composition,
+            new_unit_system
+
+        )
+
+        tp = ThermodynamicPoint(
+
+            self.RPHandler.fluids,
+            self.RPHandler.composition,
+            rp_handler=rp_handler,
+            unit_system=new_unit_system,
             other_variables=self.inputs["other_variables"],
             calculate_on_need=self.inputs["calculate_on_need"]
 
