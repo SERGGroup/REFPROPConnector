@@ -1,4 +1,4 @@
-from REFPROPConnector.Support.resources.rp_names_file_generator import generate_rp_name_file
+from REFPROPConnector.Support.resources.rp_names_file_generator import generate_rp_name_file, FILE_VERSION
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 import xml.etree.ElementTree as ETree
 from tkinter import filedialog as fd
@@ -97,30 +97,30 @@ if RP_EXEC is None:
 # ----------------------------------
 # ----------------------------------
 
-def _import_refprop_xml_files():
+
+def get_refprop_name_xml(get_derivatives_xml=False, get_converter=False) -> ETree.Element:
 
     file_path = os.path.join(__CURRENT_DIR, __REFPROP_NAMES_FILE)
 
     if not os.path.isfile(file_path):
-
         generate_rp_name_file()
 
-def get_refprop_name_xml(get_derivatives_xml=False, get_converter=False) -> ETree.Element:
+    tree = ETree.parse(file_path)
+    root = tree.getroot()
+    info = root.find("info")
 
-    _import_refprop_xml_files()
-    file_path = os.path.join(__CURRENT_DIR, __REFPROP_NAMES_FILE)
+    if (info is None) or (not FILE_VERSION == info.attrib["version"]):
 
-    if os.path.isfile(file_path):
-
+        generate_rp_name_file()
         tree = ETree.parse(file_path)
         root = tree.getroot()
 
-        if get_derivatives_xml:
+    if get_derivatives_xml:
 
-            return root.find("derivatives")
+        return root.find("derivatives")
 
-        if get_converter:
+    if get_converter:
 
-            return root.find("unit_conversion")
+        return root.find("unit_conversion")
 
-        return root.find("names")
+    return root.find("names")
