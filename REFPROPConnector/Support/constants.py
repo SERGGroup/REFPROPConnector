@@ -1,3 +1,4 @@
+from .refprop_names_tree import RefPropUnitConverterTree as __RP_conv_tree
 from .refprop_names_tree import RefPropDerivativesTree as __RP_der_tree
 from .refprop_names_tree import RefPropNamesTree as __RP_name_tree
 import os
@@ -5,8 +6,8 @@ import os
 
 CURRENT_DIR = os.path.dirname(__file__)
 __REFPROP_NAME_TREE = __RP_name_tree.initialize_from_xml()
+__REFPROP_CONV_TREE = __RP_conv_tree.initialize_from_xml()
 __REFPROP_DER_TREE = __RP_der_tree.initialize_from_xml()
-
 
 def get_refprop_name(name: str):
 
@@ -14,6 +15,7 @@ def get_refprop_name(name: str):
 
 
 def get_units(name: str, unit_system: str):
+
     unit_system = unit_system.upper()
     units_dict = __REFPROP_NAME_TREE.get_units_dict(name.lower())
 
@@ -60,3 +62,8 @@ def get_derivative_info(num_name: str, den_name: str, fix_name: str):
     ).upper()
 
     return __REFPROP_DER_TREE.find_element(der_code)
+
+
+def get_conversion_info(variable_name):
+    return __REFPROP_CONV_TREE.get_conversion_information(variable_name.lower())
+

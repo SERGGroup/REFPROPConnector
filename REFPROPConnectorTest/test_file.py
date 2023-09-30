@@ -1,4 +1,5 @@
 from REFPROPConnector import ThermodynamicPoint, DiagramPlotter, DiagramPlotterOptions
+from REFPROPConnector.Tools.units_converter import convert_variable
 from REFPROPConnector.Support.constants import get_refprop_name
 from matplotlib import pyplot as plt
 import unittest
@@ -27,6 +28,27 @@ class TestREFPROPConnector(unittest.TestCase):
 
         rp_name = get_refprop_name("pressure")
         self.assertEqual("P", rp_name)
+
+    def test_convert(self):
+
+        rp_name, info = convert_variable(32, "T", "F", "K")
+        self.assertEqual(273.15, rp_name)
+
+        rp_name, info = convert_variable(1, "P", "MPa", "Pa")
+        self.assertEqual(1e6, rp_name)
+
+        rp_name, info = convert_variable(1, "H", "J/g", "J/kg")
+        self.assertEqual(1e3, rp_name)
+
+    def test_convert_unit_system(self):
+
+        tp = ThermodynamicPoint(["Carbon Dioxide"], [1])
+        tp.set_variable("T", 20)
+        tp.set_variable("P", 1)
+
+        tp_new = tp.get_alternative_unit_system("MASS BASE SI")
+
+        self.assertEqual(20+273.15, tp_new.get_variable("T"))
 
     def test_copy(self):
 
@@ -64,7 +86,6 @@ class TestREFPROPConnector(unittest.TestCase):
         tp_ref.set_variable("P", 0.101325)
 
         tp.reference_state = tp_ref
-        tp.set_unit_system("MASS BASE SI")
 
         self.assertEqual(tp.reference_state.get_variable("T"), T_ref + 273.15)
 

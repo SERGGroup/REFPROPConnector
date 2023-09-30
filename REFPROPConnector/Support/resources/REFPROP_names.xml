@@ -445,5 +445,348 @@
         </other_derivatives_prop>
 
     </derivatives>
+    <unit_conversion>
+
+        <unit_prop_name name = "P">
+
+            <func name="multiply"   ext_qty_location="none"/>
+
+            <units>
+                <unit name = "kPa">
+                    <factor name="mult" value="1"/>
+                </unit>
+                <unit name = "MPa">
+                    <factor name="mult" value="1000"/>
+                </unit>
+                <unit name = "Pa">
+                    <factor name="mult" value="0.001"/>
+                </unit>
+                <unit name = "bar">
+                    <factor name="mult" value="100"/>
+                </unit>
+                <unit name = "psia">
+                    <factor name="mult" value="6.894757293178"/>
+                </unit>
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "T">
+
+            <func name="sum_mult"   ext_qty_location="none"/>
+
+            <units>
+                <unit name = "K">
+                    <factor name="sum" value="-273.15"/>
+                    <factor name="mult" value="1"/>
+                </unit>
+                <unit name = "C">
+                    <factor name="sum" value="0"/>
+                    <factor name="mult" value="1"/>
+                </unit>
+                <unit name = "F">
+                    <factor name="sum" value="-32"/>
+                    <factor name="mult" value="0.5555555555555556"/>
+                </unit>
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "D">
+
+            <func name="multiply"   ext_qty_location="num"/>
+
+            <units>
+
+                <unit name = "kg/m^3">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" value="mass"/>
+                </unit>
+                <unit name = "g/cm^3">
+                    <factor name="mult" value="1000"/>
+                    <factor name="quantity" value="mass"/>
+                </unit>
+                <unit name = "lbm/ft^3">
+                    <factor name="mult" value="16.018"/>
+                    <factor name="quantity" value="mass"/>
+                </unit>
+
+                <unit name = "mol/dm^3">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" value="mol"/>
+                </unit>
+                <unit name = "mol/m^3">
+                    <factor name="mult" value="0.001"/>
+                    <factor name="quantity" value="mol"/>
+                </unit>
+                <unit name = "lbmol/ft^3">
+                    <factor name="mult" value="16.018"/>
+                    <factor name="quantity" value="mol"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "E">
+
+            <func name="multiply"   ext_qty_location="den"/>
+
+            <units>
+
+                <unit name = "J/g">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "J/kg">
+                    <factor name="mult" value="0.001"/>
+                    <factor name="quantity" value="mass"/>
+                </unit>
+                <unit name = "BTU/lbm">
+                    <factor name="mult" value="2.326"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+
+                <unit name = "J/mol">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" value="mol"/>
+                </unit>
+                <unit name = "BTU/lbmol">
+                    <factor name="mult" value="2.326"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "H">
+
+            <func name="multiply"   ext_qty_location="den"/>
+
+            <units>
+
+                <unit name = "J/g">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "J/kg">
+                    <factor name="mult" value="0.001"/>
+                    <factor name="quantity" value="mass"/>
+                </unit>
+                <unit name = "BTU/lbm">
+                    <factor name="mult" value="2.326"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+
+                <unit name = "J/mol">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" value="mol"/>
+                </unit>
+                <unit name = "BTU/lbmol">
+                    <factor name="mult" value="2.326"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "S">
+
+            <func name="multiply"   ext_qty_location="den"/>
+
+            <units>
+
+                <unit name = "J/(g * K)">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "J/(kg * K)">
+                    <factor name="mult" value="0.001"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "BTU/(lbm * R)">
+                    <factor name="mult" value="4.1868"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+
+                <unit name = "J/(mol * K)">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+                <unit name = "BTU/(lbmol * R)">
+                    <factor name="mult" value="4.1868"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "Q">
+
+            <func name="none"   ext_qty_location="none"/>
+
+        </unit_prop_name>
+        <unit_prop_name name = "VIS">
+
+            <func name="multiply"   ext_qty_location="none"/>
+
+            <units>
+
+                <unit name = "uPa * s">
+                    <factor name="mult" value="0.000001"/>
+                </unit>
+                <unit name = "Pa * s">
+                    <factor name="mult" value="1"/>
+                </unit>
+                <unit name = "lbm/(ft * s)">
+                    <factor name="mult" value="1.4882"/>
+                </unit>
+                <unit name = "cpoise">
+                    <factor name="mult" value="0.001"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "TCX">
+
+            <func name="multiply"   ext_qty_location="none"/>
+
+            <units>
+
+                <unit name = "W/(m * K)">
+                    <factor name="mult" value="1"/>
+                </unit>
+                <unit name = "mW/(m * K)">
+                    <factor name="mult" value="0.001"/>
+                </unit>
+                <unit name = "BTU/(h * ft * R)">
+                    <factor name="mult" value="1.730735"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "CP">
+
+            <func name="multiply"   ext_qty_location="den"/>
+
+            <units>
+
+                <unit name = "J/(g * K)">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "J/(kg * K)">
+                    <factor name="mult" value="0.001"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "BTU/(lbm * R)">
+                    <factor name="mult" value="4.1868"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+
+                <unit name = "J/(mol * K)">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+                <unit name = "BTU/(lbmol * R)">
+                    <factor name="mult" value="4.1868"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "CP0">
+
+            <func name="multiply"   ext_qty_location="den"/>
+
+            <units>
+
+                <unit name = "J/(g * K)">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "J/(kg * K)">
+                    <factor name="mult" value="0.001"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "BTU/(lbm * R)">
+                    <factor name="mult" value="4.1868"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+
+                <unit name = "J/(mol * K)">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+                <unit name = "BTU/(lbmol * R)">
+                    <factor name="mult" value="4.1868"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "CV">
+
+            <func name="multiply"   ext_qty_location="den"/>
+
+            <units>
+
+                <unit name = "J/(g * K)">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "J/(kg * K)">
+                    <factor name="mult" value="0.001"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+                <unit name = "BTU/(lbm * R)">
+                    <factor name="mult" value="4.1868"/>
+                    <factor name="quantity" pos="den" value="mass"/>
+                </unit>
+
+                <unit name = "J/(mol * K)">
+                    <factor name="mult" value="1"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+                <unit name = "BTU/(lbmol * R)">
+                    <factor name="mult" value="4.1868"/>
+                    <factor name="quantity" pos="den" value="mol"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "CP/CV">
+
+            <func name="none"   ext_qty_location="none"/>
+
+        </unit_prop_name>
+        <unit_prop_name name = "W">
+
+            <func name="multiply"   ext_qty_location="none"/>
+
+            <units>
+
+                <unit name = "m/s">
+                    <factor name="mult" value="1"/>
+                </unit>
+                <unit name = "ft/s">
+                    <factor name="mult" value="0.3048"/>
+                </unit>
+                <unit name = "cm/s">
+                    <factor name="mult" value="0.01"/>
+                </unit>
+
+            </units>
+
+        </unit_prop_name>
+        <unit_prop_name name = "PRANDTL">
+
+            <func name="none"   ext_qty_location="none"/>
+
+        </unit_prop_name>
+
+    </unit_conversion>
 
 </data>

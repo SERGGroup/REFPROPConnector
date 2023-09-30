@@ -105,7 +105,7 @@ def _import_refprop_xml_files():
 
         generate_rp_name_file()
 
-def get_refprop_name_xml(get_derivatives_xml=False) -> ETree.Element:
+def get_refprop_name_xml(get_derivatives_xml=False, get_converter=False) -> ETree.Element:
 
     _import_refprop_xml_files()
     file_path = os.path.join(__CURRENT_DIR, __REFPROP_NAMES_FILE)
@@ -119,6 +119,8 @@ def get_refprop_name_xml(get_derivatives_xml=False) -> ETree.Element:
 
             return root.find("derivatives")
 
-        else:
+        if get_converter:
 
-            return root.find("names")
+            return root.find("unit_conversion")
+
+        return root.find("names")

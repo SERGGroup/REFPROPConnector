@@ -206,6 +206,85 @@ class RefPropNamesTree(__AbstractTree):
             return new_list
 
 
+class RefPropUnitConverterTree(__AbstractTree):
+
+    def __init__(self):
+
+        super().__init__()
+        self.refprop_name = None
+        self.conversion_dict = None
+        self.conversion_function = None
+        self.expensive_property_on_numerator = None
+
+    def init_payload(self, payload):
+
+        self.refprop_name = payload["RP_Name"]
+        self.conversion_dict = payload["conversion_dict"]
+        self.conversion_function = payload["conversion_funct"]
+
+        if payload["ext_qty_location"] == "num":
+            self.expensive_property_on_numerator = True
+
+        elif payload["ext_qty_location"] == "den":
+            self.expensive_property_on_numerator = False
+
+    @classmethod
+    def init_empty_self(cls):
+
+        return cls()
+
+    @classmethod
+    def initialize_from_xml(cls):
+
+        refprop_names_tree = cls()
+        root = get_refprop_name_xml(get_converter=True)
+
+        for element in root.findall("unit_prop_name"):
+
+            ref_prop_name = element.attrib["name"].upper()
+            function_elem = element.find("func")
+
+            conversion_dict = dict()
+            units = element.find("units")
+
+            if units is not None:
+
+                for unit in units.findall("unit"):
+
+                    curr_unit_name = unit.attrib["name"]
+                    conversion_dict.update({curr_unit_name: dict()})
+
+                    for factor in unit.findall("factor"):
+
+                        if not factor.attrib["name"] == "quantity":
+
+                            value = float(factor.attrib["value"])
+
+                        else:
+
+                            value = factor.attrib["value"]
+
+                        conversion_dict[curr_unit_name].update({factor.attrib["name"].lower(): value})
+
+            value_dict = {
+
+                "RP_Name": ref_prop_name,
+                "conversion_dict": conversion_dict,
+                "conversion_funct": function_elem.attrib["name"],
+                "ext_qty_location": function_elem.attrib["ext_qty_location"],
+
+            }
+
+            refprop_names_tree.append_value(ref_prop_name.lower(), value_dict)
+
+        return refprop_names_tree
+
+    def get_conversion_information(self, input_std_name):
+
+        element_found = self.find_element(input_std_name)
+        return element_found
+
+
 class RefPropDerivativesTree(__AbstractTree):
 
     def __init__(self):
