@@ -323,9 +323,9 @@ class ThermodynamicVariable:
 
         value, info = convert_variable(
 
-            self.value, self.name,
-            rp_handler.return_units(self.name),
-            rp_handler.return_units(self.name, to_unit_system)
+            self.value, self.refprop_name,
+            rp_handler.return_units(self.refprop_name),
+            rp_handler.return_units(self.refprop_name, to_unit_system)
 
         )
 
