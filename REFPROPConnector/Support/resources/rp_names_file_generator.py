@@ -1,9 +1,10 @@
 import os
 
+FILE_VERSION="0.3.5"
 __CURR_DIR = os.path.dirname(__file__)
 __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 <data>
-
+    <info version="{fileversion}"/>
     <names>
 
         <refprop_name name = "P">
@@ -450,7 +451,7 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
     </derivatives>
     <unit_conversion>
 
-        <refprop_name name = "P">
+        <unit_prop_name name = "P">
 
             <func name="multiply"   ext_qty_location="none"/>
 
@@ -472,8 +473,8 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
                 </unit>
             </units>
 
-        </refprop_name>
-        <refprop_name name = "T">
+        </unit_prop_name>
+        <unit_prop_name name = "T">
 
             <func name="sum_mult"   ext_qty_location="none"/>
 
@@ -492,8 +493,8 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
                 </unit>
             </units>
 
-        </refprop_name>
-        <refprop_name name = "D">
+        </unit_prop_name>
+        <unit_prop_name name = "D">
 
             <func name="multiply"   ext_qty_location="num"/>
 
@@ -527,8 +528,8 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "E">
+        </unit_prop_name>
+        <unit_prop_name name = "E">
 
             <func name="multiply"   ext_qty_location="den"/>
 
@@ -558,8 +559,8 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "H">
+        </unit_prop_name>
+        <unit_prop_name name = "H">
 
             <func name="multiply"   ext_qty_location="den"/>
 
@@ -589,8 +590,8 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "S">
+        </unit_prop_name>
+        <unit_prop_name name = "S">
 
             <func name="multiply"   ext_qty_location="den"/>
 
@@ -620,13 +621,13 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "Q">
+        </unit_prop_name>
+        <unit_prop_name name = "Q">
 
             <func name="none"   ext_qty_location="none"/>
 
-        </refprop_name>
-        <refprop_name name = "VIS">
+        </unit_prop_name>
+        <unit_prop_name name = "VIS">
 
             <func name="multiply"   ext_qty_location="none"/>
 
@@ -647,8 +648,8 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "TCX">
+        </unit_prop_name>
+        <unit_prop_name name = "TCX">
 
             <func name="multiply"   ext_qty_location="none"/>
 
@@ -666,8 +667,8 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "CP">
+        </unit_prop_name>
+        <unit_prop_name name = "CP">
 
             <func name="multiply"   ext_qty_location="den"/>
 
@@ -697,8 +698,8 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "CP0">
+        </unit_prop_name>
+        <unit_prop_name name = "CP0">
 
             <func name="multiply"   ext_qty_location="den"/>
 
@@ -728,8 +729,8 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "CV">
+        </unit_prop_name>
+        <unit_prop_name name = "CV">
 
             <func name="multiply"   ext_qty_location="den"/>
 
@@ -759,13 +760,13 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "CP/CV">
+        </unit_prop_name>
+        <unit_prop_name name = "CP/CV">
 
             <func name="none"   ext_qty_location="none"/>
 
-        </refprop_name>
-        <refprop_name name = "W">
+        </unit_prop_name>
+        <unit_prop_name name = "W">
 
             <func name="multiply"   ext_qty_location="none"/>
 
@@ -783,17 +784,18 @@ __RP_NAMES_TXT = """<?xml version="1.0" encoding="UTF-8" ?>
 
             </units>
 
-        </refprop_name>
-        <refprop_name name = "PRANDTL">
+        </unit_prop_name>
+        <unit_prop_name name = "PRANDTL">
 
             <func name="none"   ext_qty_location="none"/>
 
-        </refprop_name>
+        </unit_prop_name>
 
     </unit_conversion>
 
 </data>
-"""
+
+""".format(fileversion=FILE_VERSION)
 
 def generate_rp_name_file():
 
