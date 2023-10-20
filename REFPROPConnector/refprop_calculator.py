@@ -181,9 +181,6 @@ class RefPropHandler:
         self.composition = composition
         self.unit_system = unit_system
 
-        self.TC = self.calculate("", "TC", 0, 0)
-        self.PC = self.calculate("", "PC", 0, 0)
-
     def set_reference_state(self, T_0=20, P_0=101325, T_0unit="C", P_0unit="Pa", old_unit_system=None):
 
         T_unit = self.return_units("T")
@@ -284,6 +281,12 @@ class RefPropHandler:
 
             warnings.warn(warning_message)
             self.__unit_system = "SI WITH C"
+
+        # Evaluate Critical and Triple Point
+        self.TC = self.calculate("", "TC", 0, 0)
+        self.PC = self.calculate("", "PC", 0, 0)
+        self.T_trip = self.calculate("", "TTRP", 0, 0)
+        self.P_trip = self.calculate("", "PTRP", 0, 0)
 
         self.set_reference_state(old_unit_system=old_unit_system)
 
