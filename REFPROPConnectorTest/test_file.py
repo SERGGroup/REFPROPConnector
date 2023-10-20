@@ -9,7 +9,7 @@ class TestREFPROPConnector(unittest.TestCase):
 
     def test_init(self):
 
-        ThermodynamicPoint(["air"], [1])
+        ThermodynamicPoint(["Carbon Dioxide"], [1])
         self.assertEqual(True, True)
 
     def test_list_properties(self):
@@ -151,6 +151,7 @@ class TestREFPROPConnector(unittest.TestCase):
         fig.set_size_inches(10, 5)
         plotter.plot(ax_1)
         plt.show()
+
 
 if __name__ == '__main__':
     unittest.main()
