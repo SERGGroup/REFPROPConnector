@@ -582,6 +582,29 @@ class AbstractThermodynamicPoint(ABC):
 
         return None
 
+    def get_second_derivative(self, num_name: str, den_name: str, other_den_name=None):
+
+        if self.calculation_ready:
+
+            if other_den_name is not None:
+
+                info = constants.get_second_derivative_info(num_name, den_name, other_den_name)
+
+            else:
+
+                info = constants.get_second_derivative_info(num_name, den_name)
+
+            if info is not None:
+
+                rp_codes = info.refprop_codes
+                return self.__calculate_direct(rp_codes[0])
+
+        return None
+
+    def evaluate_RP_code(self, rp_code):
+
+        return self.__calculate_direct(rp_code)
+
     def get_composition(self, phase):
 
         if self.calculation_ready:

@@ -63,6 +63,19 @@ def get_derivative_info(num_name: str, den_name: str, fix_name: str):
 
     return __REFPROP_DER_TREE.find_element(der_code)
 
+def get_second_derivative_info(num_name: str, den_name: str, other_den_name="2"):
+
+    if not other_den_name == "2":
+        other_den_name = get_refprop_name(other_den_name)
+
+    der_code = "D2{}D{}{}".format(
+
+        get_refprop_name(num_name),
+        get_refprop_name(den_name),
+        other_den_name
+
+    ).upper()
+    return __REFPROP_DER_TREE.find_element(der_code)
 
 def get_conversion_info(variable_name):
     return __REFPROP_CONV_TREE.get_conversion_information(variable_name.lower())
