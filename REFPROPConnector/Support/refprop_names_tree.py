@@ -326,7 +326,7 @@ class RefPropDerivativesTree(__AbstractTree):
 
             REFPROP provides the values of the partial derivatives of some variables
 
-            - For the 'main_derivatives' properties (currently P, T, and D) it allows every combination of respective
+            -   For the 'main_derivatives' properties (currently P, T, and D) it allows every combination of respective
                 derivatives (i.e. dp/dT fixed D, dT/dP fixed D and so on).
                 The syntax if the REFPROP call in this case is:
 
@@ -337,8 +337,19 @@ class RefPropDerivativesTree(__AbstractTree):
                         {1} is the name of the numerator
                         {2} is the name of the denominator
 
+                moreover, for 'main_derivatives' also second order derivatives can be evaluated, the code are defined as follows:
 
-            - For the 'other_derivatives' properties it allows only the calculation of the derivative of such property
+                    D2{1}D{2}2
+                     - or -
+                    D2{1}D{2}{3}
+
+                where
+
+                        {1} is the name of the numerator
+                        {2} is the name of the denominator
+                        {3} is the name of the other denominator (if exist)
+
+            -   For the 'other_derivatives' properties it allows only the calculation of the derivative of such property
                 with respect to one 'main_derivatives' property. The syntax is:
 
                     D{1}D{2}_{3}
@@ -348,6 +359,8 @@ class RefPropDerivativesTree(__AbstractTree):
                         {1} is the name of the numerator
                         {2} is the name of the denominator
                         {3} is another main 'main_derivatives' property that is kept fixed
+
+                It is not possible to evaluate second derivatives with these properties.
 
         """
 
@@ -382,11 +395,14 @@ class RefPropDerivativesTree(__AbstractTree):
 
                 if not (num_name == den_name):
 
+                    derivatives_list.append(cls.__get_second_derivatives_dict(num_name, den_name))
+
                     for fix_name in main_der_list:
 
                         if not (num_name == fix_name) and not (den_name == fix_name):
 
                             derivatives_list.append(cls.__get_derivatives_dict(num_name, den_name, fix_name, is_main=True))
+                            derivatives_list.append(cls.__get_second_derivatives_dict(num_name, den_name, fix_name))
 
                     for fix_name in other_der_list:
 
@@ -445,5 +461,40 @@ class RefPropDerivativesTree(__AbstractTree):
 
             "INVERSE": str(is_inverse),
             "FRACTION": str(is_fraction)
+
+        }
+
+    @staticmethod
+    def __get_second_derivatives_dict(num_name, den_name, other_den_name = "2"):
+
+        search_code = "D2{}D{}{}".format(num_name, den_name, other_den_name)
+
+        if other_den_name == "2":
+
+            rp_code = [search_code]
+
+        else:
+
+            if other_den_name == "P":
+
+                # P is always the first name in the derivative code
+                other_den_name = den_name
+                den_name = "P"
+
+            elif other_den_name == "T" and den_name == "D":
+
+                # T is always in front of D in the derivative code
+                other_den_name = "D"
+                den_name = "T"
+
+            rp_code = ["D2{}D{}{}".format(num_name, den_name, other_den_name)]
+
+        return {
+
+            "SEARCH_CODE": search_code,
+            "REFPROP_CODE": rp_code,
+
+            "INVERSE": str(False),
+            "FRACTION": str(False)
 
         }

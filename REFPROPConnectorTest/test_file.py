@@ -76,6 +76,31 @@ class TestREFPROPConnector(unittest.TestCase):
 
         self.assertEqual(True, True)
 
+    def test_second_derivative(self):
+
+        tp = ThermodynamicPoint(["carbon dioxide"], [1])
+
+        tp.set_variable("T", 90)
+        tp.set_variable("P", 15)
+
+        print(tp.get_second_derivative("T", "P"))
+
+        self.assertEqual(True, True)
+
+    def test_evaluate_direct(self):
+
+        tp = ThermodynamicPoint(["carbon dioxide"], [1])
+
+        tp.set_variable("T", 90)
+        tp.set_variable("P", 15)
+
+        a = tp.evaluate_RP_code("D2PDTD")
+        b = tp.get_second_derivative("P", "T", "rho")
+        print(a)
+        print(b)
+
+        self.assertEqual(a, b)
+
     def test_reference_state(self):
 
         tp = ThermodynamicPoint(["carbon dioxide"], [1])
