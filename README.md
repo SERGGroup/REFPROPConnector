@@ -62,7 +62,7 @@ independent state variable have been set. It can be useful for example for the e
 for a fluid flowing in a pipe.
 
 ```python
-from REFPROPConnector import AbstractThermodynamicPoint, RefPropHandler
+from REFPROPConnector import AbstractThermodynamicPoint, RefPropHandler, init_handler
 import numpy as np
 
 
@@ -75,7 +75,12 @@ class TubeSection(AbstractThermodynamicPoint):
         self.flow_rate = flow_rate
         self.Re = 0.
         
-        refprop = RefPropHandler(["air"], [1])
+        refprop = init_handler(
+
+            chosen_subclass=RefPropHandler,
+            fluids=["air"], composition=[1]
+            
+        )
 
         super().__init__(refprop)
 
