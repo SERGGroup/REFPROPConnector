@@ -1,6 +1,8 @@
-from REFPROPConnector.Tools.units_converter import convert_variable, constants
-from .quality_iteration import CODES_TO_BE_ITERATED, QualityIteration
+from .__variable import ThermodynamicVariable, convert_variable, constants
+from .__quality_iteration import CODES_TO_BE_ITERATED, QualityIteration
 from abc import ABC, abstractmethod
+import warnings
+
 
 GLOBALCounter = 0
 ACTIVE_HANDLERS = []
@@ -89,6 +91,17 @@ class BaseHandler(ABC):
         GLOBALCounter += 1
         return self.evaluate_dll(str_in, str_out, a, b)
 
+    def new_calculate(self, str_out: str, variable_a: ThermodynamicVariable, variable_b: ThermodynamicVariable):
+
+        global GLOBALCounter
+        GLOBALCounter += 1
+
+        return self.new_evaluate_dll(str_out, variable_a, variable_b)
+
+    @abstractmethod
+    def new_evaluate_dll(self, str_out: str, variable_a: ThermodynamicVariable, variable_b: ThermodynamicVariable):
+        pass
+
     @abstractmethod
     def evaluate_dll(self, str_in: str, str_out: str, a: float, b: float):
         pass
@@ -129,7 +142,28 @@ class BaseHandler(ABC):
     def unit_system(self, unit_system_input):
 
         old_unit_system = self.unit_system
-        self.set_unit_system(unit_system_input)
+        self.__unit_system = unit_system_input
+
+        try:
+
+            self.set_unit_system(unit_system_input)
+
+        except:
+
+            self.set_unit_system(DEFAULT_UNIT_SYSTEM)
+            warning_message = (
+
+                """
+                    {} unit system is not supported,
+                    {} has been used instead\n
+                    Check in the REFPROP manual for the correct
+                    name of the system that you wanted to use
+                """
+
+            ).format(self.__unit_system, DEFAULT_UNIT_SYSTEM)
+
+            warnings.warn(warning_message)
+            self.__unit_system = DEFAULT_UNIT_SYSTEM
 
         # Evaluate Critical and Triple Point
         self.TC = self.calculate("", "TC", 0, 0)

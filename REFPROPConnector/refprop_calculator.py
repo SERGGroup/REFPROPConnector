@@ -1,56 +1,13 @@
-import sty
 from abc import ABC, abstractmethod
 from sty import fg, bg, ef, rs
+import sty
 
-from REFPROPConnector.Handlers import RefPropHandler, CODES_TO_BE_ITERATED, init_handler
-from .Tools.units_converter import convert_variable, constants
+from REFPROPConnector.Handlers import (
 
+    RefPropHandler, CODES_TO_BE_ITERATED, init_handler,
+    ThermodynamicVariable, constants
 
-class ThermodynamicVariable:
-
-    def __init__(self, name: str):
-
-        self.value = None
-        self.name = name
-        self.refprop_name = constants.get_refprop_name(name)
-        self.is_user_defined = False
-        self.order = 0
-
-    @property
-    def is_empty(self):
-        return self.value is None
-
-    def convert(self, rp_handler: RefPropHandler, to_unit_system):
-
-        value, info = convert_variable(
-
-            self.value, self.refprop_name,
-            rp_handler.return_units(self.refprop_name),
-            rp_handler.return_units(self.refprop_name, to_unit_system)
-
-        )
-
-        # TODO implement conversion mass / mole based system
-
-        return value
-
-    def __gt__(self, other):
-        # enables comparison
-        # self > other
-
-        return self.order > other.order
-
-    def __lt__(self, other):
-        # enables comparison
-        # self < other
-
-        return self.order < other.order
-
-    def __le__(self, other):
-        return not self.__gt__(other)
-
-    def __ge__(self, other):
-        return not self.__lt__(other)
+)
 
 
 class AbstractThermodynamicPoint(ABC):
@@ -232,7 +189,7 @@ class AbstractThermodynamicPoint(ABC):
 
             self.__update_variables()
 
-    def get_variable(self, variable_name: str):
+    def get_variable(self, variable_name: str, other_unit_system=None):
 
         variable = self.__get_variable_from_name(variable_name)
 
@@ -242,7 +199,18 @@ class AbstractThermodynamicPoint(ABC):
 
                 self.__calculate_variable(variable)
 
-            return variable.value
+            if other_unit_system is None:
+
+                return variable.value
+
+            else:
+
+                return variable.convert(
+
+                    rp_handler=self.RPHandler,
+                    to_unit_system=other_unit_system
+
+                )
 
         if variable_name == "exergy":
 
@@ -624,6 +592,26 @@ class AbstractThermodynamicPoint(ABC):
             string_to_display += "\n"
 
         return string_to_display
+
+    def __eq__(self, other):
+
+        """check if this is equal to another instance"""
+        if not (self.calculation_ready and other.calculation_ready):
+            return False
+
+        if not (self.RPHandler.fluids == other.RPHandler.fluids):
+            return False
+
+        if not (self.RPHandler.composition == other.RPHandler.composition):
+            return False
+
+        if not (self.get_variable("P") == other.get_variable("P", other_unit_system=self.RPHandler.unit_system)):
+            return False
+
+        if not (self.get_variable("rho") == other.get_variable("rho", other_unit_system=self.RPHandler.unit_system)):
+            return False
+
+        return True
 
 
 class ThermodynamicPoint(AbstractThermodynamicPoint):
