@@ -8,7 +8,7 @@ from .__base_handler import BaseHandler, DEFAULT_UNIT_SYSTEM, CODES_TO_BE_ITERAT
 
 class RefPropHandler(BaseHandler):
 
-    def __init__(self, fluids: list, composition: list, unit_system="SI WITH C"):
+    def __init__(self, fluids: list, composition: list, unit_system=DEFAULT_UNIT_SYSTEM):
 
         # If REFPROP is available the program uses it, otherwise COOLPROP is used
 
@@ -32,17 +32,18 @@ class RefPropHandler(BaseHandler):
 
         super().__init__(fluids, composition, unit_system)
 
-    def evaluate_dll(self, str_in: str, str_out: str, a: float, b: float):
+    def base_evaluate_dll(self, str_in: str, str_out: str, a: float, b: float):
         self.refprop.SETFLUIDSdll('*'.join(self.fluids))
         return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
 
-    def new_evaluate_dll(self, str_out: str, variable_a, variable_b):
+    def evaluate_dll(self, str_out: str, variable_a, variable_b, metastb=""):
 
-        str_in = variable_a.refprop_name + variable_b.refprop_name
+        str_in = variable_a.refprop_name + variable_b.refprop_name + metastb
         a = variable_a.value
         b = variable_b.value
 
         if str_in in CODES_TO_BE_ITERATED:
+
             qi = QualityIteration(self, str_in, str_out, a, b)
             return qi.result
 
@@ -67,4 +68,3 @@ class RefPropHandler(BaseHandler):
     def rp_version(self):
 
         return self.refprop.RPVersion()
-

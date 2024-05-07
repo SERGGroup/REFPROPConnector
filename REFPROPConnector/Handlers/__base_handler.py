@@ -66,10 +66,10 @@ class BaseHandler(ABC):
             self.T_0, info = convert_variable(T_0, "T", T_0unit, T_unit)
             self.P_0, info = convert_variable(P_0, "p", P_0unit, P_unit)
 
-        self.H_0 = self.calculate("TP", "H", self.T_0, self.P_0)
-        self.S_0 = self.calculate("TP", "s", self.T_0, self.P_0)
+        self.H_0 = self.base_calculate("TP", "H", self.T_0, self.P_0)
+        self.S_0 = self.base_calculate("TP", "s", self.T_0, self.P_0)
 
-    def calculate(self, str_in: str, str_out: str, a: float, b: float):
+    def base_calculate(self, str_in: str, str_out: str, a: float, b: float):
 
         global GLOBALCounter
 
@@ -89,21 +89,21 @@ class BaseHandler(ABC):
                 str_out = "QMOLE"
 
         GLOBALCounter += 1
-        return self.evaluate_dll(str_in, str_out, a, b)
+        return self.base_evaluate_dll(str_in, str_out, a, b)
 
-    def new_calculate(self, str_out: str, variable_a: ThermodynamicVariable, variable_b: ThermodynamicVariable):
+    def calculate(self, str_out: str, variable_a: ThermodynamicVariable, variable_b: ThermodynamicVariable, metastb=""):
 
         global GLOBALCounter
         GLOBALCounter += 1
 
-        return self.new_evaluate_dll(str_out, variable_a, variable_b)
+        return self.evaluate_dll(str_out, variable_a, variable_b, metastb)
 
     @abstractmethod
-    def new_evaluate_dll(self, str_out: str, variable_a: ThermodynamicVariable, variable_b: ThermodynamicVariable):
+    def evaluate_dll(self, str_out: str, variable_a: ThermodynamicVariable, variable_b: ThermodynamicVariable, metastb=""):
         pass
 
     @abstractmethod
-    def evaluate_dll(self, str_in: str, str_out: str, a: float, b: float):
+    def base_evaluate_dll(self, str_in: str, str_out: str, a: float, b: float):
         pass
 
     def get_composition(self, phase, T, P):
@@ -166,10 +166,10 @@ class BaseHandler(ABC):
             self.__unit_system = DEFAULT_UNIT_SYSTEM
 
         # Evaluate Critical and Triple Point
-        self.TC = self.calculate("", "TC", 0, 0)
-        self.PC = self.calculate("", "PC", 0, 0)
-        self.T_trip = self.calculate("", "TTRP", 0, 0)
-        self.P_trip = self.calculate("", "PTRP", 0, 0)
+        self.TC = self.base_calculate("", "TC", 0, 0)
+        self.PC = self.base_calculate("", "PC", 0, 0)
+        self.T_trip = self.base_calculate("", "TTRP", 0, 0)
+        self.P_trip = self.base_calculate("", "PTRP", 0, 0)
 
         self.set_reference_state(old_unit_system=old_unit_system)
 

@@ -7,7 +7,7 @@ from .__base_handler import BaseHandler, DEFAULT_UNIT_SYSTEM
 
 class CoolpropHandler(BaseHandler):
 
-    def new_evaluate_dll(self, str_out: str, variable_a: ThermodynamicVariable, variable_b: ThermodynamicVariable):
+    def evaluate_dll(self, str_out: str, variable_a: ThermodynamicVariable, variable_b: ThermodynamicVariable, metastb=""):
         pass
 
     @classmethod
@@ -28,7 +28,7 @@ class CoolpropHandler(BaseHandler):
         self.fluid_name = self.coolprop_fluid_name(fluids, composition)
         super().__init__(fluids, composition, unit_system)
 
-    def evaluate_dll(self, str_in: str, str_out: str, a: float, b: float):
+    def base_evaluate_dll(self, str_in: str, str_out: str, a: float, b: float):
 
         return PropsSI('T','P',101325,'Q',0,'Water')
 

@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 from sty import fg, bg, ef, rs
 import sty
 
+
 from REFPROPConnector.Handlers import (
 
     RefPropHandler, CODES_TO_BE_ITERATED, init_handler,
-    ThermodynamicVariable, constants
+    ThermodynamicVariable, constants, DEFAULT_UNIT_SYSTEM
 
 )
 
@@ -13,8 +14,13 @@ from REFPROPConnector.Handlers import (
 class AbstractThermodynamicPoint(ABC):
 
     @classmethod
-    def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all",
-                        unit_system="SI WITH C"):
+    def init_from_fluid(
+
+            cls, fluids: list, composition: list,
+            other_variables="all", calculate_on_need="all",
+            unit_system=DEFAULT_UNIT_SYSTEM
+
+    ):
 
         RP = init_handler(
 
@@ -41,6 +47,7 @@ class AbstractThermodynamicPoint(ABC):
 
         self.calculated_variables = list()
         self.__initialize_calculate_on_need_variables(calculate_on_need)
+        self.__metastability = ""
 
     def __initialize_state_variables(self):
 
@@ -140,10 +147,10 @@ class AbstractThermodynamicPoint(ABC):
 
                 value = self.RPHandler.calculate(
 
-                    input_str,
                     REFPROP_CODE,
-                    not_none_variables[0].value,
-                    not_none_variables[1].value
+                    not_none_variables[0],
+                    not_none_variables[1],
+                    metastb=self.__metastability
 
                 )
 
@@ -151,10 +158,10 @@ class AbstractThermodynamicPoint(ABC):
 
                 P_value = self.RPHandler.calculate(
 
-                    input_str,
                     "P",
-                    not_none_variables[0].value,
-                    not_none_variables[1].value
+                    not_none_variables[0],
+                    not_none_variables[1],
+                    metastb=self.__metastability
 
                 )
 
@@ -434,6 +441,36 @@ class AbstractThermodynamicPoint(ABC):
 
         """
         pass
+
+    @property
+    def metastability(self):
+
+
+        if self.__metastability == "L":
+
+            return "Liquid"
+
+        if self.__metastability == "V":
+
+            return "Vapour"
+
+        return "Equilibrium"
+
+    @metastability.setter
+    def metastability(self, metastability: str):
+
+        metastability = metastability.lower()
+        if metastability == "liq" or metastability == "liquid" or metastability == "v" or metastability == ">":
+
+            self.__metastability = "L"
+
+        elif metastability == "vap" or metastability == "vapour" or metastability == "vapor" or metastability == "v" or metastability == "<":
+
+            self.__metastability = "V"
+
+        else:
+
+            self.__metastability = ""
 
     def copy_state_to(self, target_point):
 

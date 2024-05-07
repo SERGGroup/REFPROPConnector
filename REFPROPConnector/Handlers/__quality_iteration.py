@@ -19,7 +19,7 @@ class QualityIteration:
         self.__identify_T_range()
         self.__iterate_quality()
 
-        self.result = self.RPHandler.calculate("TQ", str_out, self.T_limits[0], self.q_value)
+        self.result = self.RPHandler.base_calculate("TQ", str_out, self.T_limits[0], self.q_value)
 
     def __identify_Q(self, a, b):
 
@@ -37,11 +37,11 @@ class QualityIteration:
 
     def __identify_T_range(self):
 
-        min_T = self.RPHandler.calculate("EOSMIN", "T", 0., 0.)
+        min_T = self.RPHandler.base_calculate("EOSMIN", "T", 0., 0.)
 
         try:
 
-            triple_T = self.RPHandler.calculate("TRIP", "T", 0., 0.)
+            triple_T = self.RPHandler.base_calculate("TRIP", "T", 0., 0.)
 
         except:
 
@@ -140,6 +140,6 @@ class QualityIteration:
 
     def __calculate_var(self, T_value):
 
-        value = self.RPHandler.calculate("TQ", self.other_var, T_value, self.q_value)
+        value = self.RPHandler.base_calculate("TQ", self.other_var, T_value, self.q_value)
         error = value - self.var_value
         return error

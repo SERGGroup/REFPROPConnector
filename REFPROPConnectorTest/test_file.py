@@ -188,6 +188,31 @@ class TestREFPROPConnector(unittest.TestCase):
 
         self.assertEqual(True, equals)
 
+    def test_metastability(self):
+
+        tp = ThermodynamicPoint(["Carbon Dioxide"], [1])
+
+        t_in = 10
+        tp.set_variable("T", t_in)
+        tp.set_variable("Q", 0)
+        rho_liq = tp.get_variable("rho")
+
+        tp.set_variable("T", t_in)
+        tp.set_variable("Q", 1)
+        rho_vap = tp.get_variable("rho")
+
+        tp_metastb = tp.duplicate()
+        tp_metastb.metastability = "liquid"
+        tp_metastb.set_variable("rho", rho_liq * 0.98 + rho_vap * 0.02)
+        tp_metastb.set_variable("T", t_in)
+
+        tp.set_variable("rho", rho_liq * 0.98 + rho_vap * 0.02)
+        tp.set_variable("T", t_in)
+        print(tp.get_variable("P"))
+        print(tp_metastb.get_variable("P"))
+
+        self.assertTrue(tp.get_variable("P") > tp_metastb.get_variable("P"))
+
 
 if __name__ == '__main__':
 

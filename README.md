@@ -128,6 +128,19 @@ tp.list_unit_systems()
 ```
 Default unit system is __SI with C__
 
+### Metastable Calculation
+
+You can force the state to represent a metastable condition as follows:  
+
+```python
+from REFPROPConnector import ThermodynamicPoint
+
+tp = ThermodynamicPoint(["water"], [1.], unit_system="MASS BASE SI")
+tp.metastability = "liq" # or "vap" for vapour metastable condition
+```
+Acceptable keywords for metastability are ["liquid", "liq", "l", ">"] for the liquid metastable state, 
+or ["vap", "vapour", "vapor", "v", "<"] for the vapour state (keywords **are not** case-sensitive).
+
 ### Diagram Plotter
 The _DiagramPlotter_ class can be used to plot a specific state diagram that can be then used to describe state 
 transformations. The diagram can be personalized using the _DiagramPlotterOptions_ class. 
