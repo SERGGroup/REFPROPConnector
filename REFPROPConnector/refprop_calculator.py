@@ -1,367 +1,34 @@
-from .Tools.units_converter import convert_variable, constants
-from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
-from .Support.resources.file_handler import RP_EXEC
 from abc import ABC, abstractmethod
 from sty import fg, bg, ef, rs
-from copy import deepcopy
-import warnings, sty
+import sty
 
 
-GLOBALCounter = 0
-CODES_TO_BE_ITERATED = [
+from REFPROPConnector.Handlers import (
 
-    "HQ", "SQ", "EQ",
-    "QH", "QS", "QE"
+    RefPropHandler, CODES_TO_BE_ITERATED, init_handler,
+    ThermodynamicVariable, constants, DEFAULT_UNIT_SYSTEM
 
-]
-
-
-class QualityIteration:
-
-    def __init__(self, RPHandler, str_in: str, str_out: str, a: float, b: float):
-
-        self.RPHandler = RPHandler
-        self.str_in = str_in
-
-        self.__identify_Q(a, b)
-        self.__identify_T_range()
-        self.__iterate_quality()
-
-        self.result = self.RPHandler.calculate("TQ", str_out, self.T_limits[0], self.q_value)
-
-    def __identify_Q(self, a, b):
-
-        self.other_var = self.str_in.strip("Q")
-
-        if self.str_in[0] == "Q":
-
-            self.q_value = a
-            self.var_value = b
-
-        else:
-
-            self.q_value = b
-            self.var_value = a
-
-    def __identify_T_range(self):
-
-        min_T = self.RPHandler.calculate("EOSMIN", "T", 0., 0.)
-
-        try:
-
-            triple_T = self.RPHandler.calculate("TRIP", "T", 0., 0.)
-
-        except:
-
-            triple_T = -1000000
-
-        self.min_T = max(min_T, triple_T)
-        self.T_limits = [min_T, self.RPHandler.TC]
-
-    def __iterate_quality(self):
-
-        self.value_limits = [
-
-            self.__calculate_var(self.T_limits[0]),
-            self.__calculate_var(self.T_limits[1])
-
-        ]
-
-        if not (self.value_limits[0] * self.value_limits[1] < 0):
-            raise Exception("Unable to perform {} flash".format(self.str_in))
-
-        counter = 0
-        while abs(self.T_limits[0] - self.T_limits[1]) > 10**-3 or counter > 30:
-            counter += 1
-            self.__quality_iteration_step()
-
-    def __quality_iteration_step(self):
-
-        # Bisection Calculation
-        T_bis = (self.T_limits[1] + self.T_limits[0]) / 2
-        bis_dict = self.__get_quality_iteration_step_result(T_bis)
-        dict_list = [bis_dict]
-
-        # Secant Calculation (if possible)
-        T_val = self.T_limits
-        res_val = self.value_limits
-        T_sec = T_val[0] - res_val[0] / (res_val[1] - res_val[0]) * (T_val[1] - T_val[0])
-
-        if self.min_T < T_sec < self.RPHandler.TC:
-
-            sec_dict = self.__get_quality_iteration_step_result(T_sec)
-            dict_list.append(sec_dict)
-
-            # if possible check the interval between T_sec and T_bis
-            if bis_dict["var_new"] * sec_dict["var_new"] < 0:
-                dict_list.append({
-
-                    "new_limits": {
-
-                        "T": [bis_dict["T_new"], sec_dict["T_new"]],
-                        "var": [bis_dict["var_new"], sec_dict["var_new"]]
-
-                    },
-                    "dT": abs(bis_dict["T_new"] - sec_dict["T_new"])
-
-                })
-
-        # take the minimum dt interval
-        min_dict = bis_dict
-        for res_dict in dict_list:
-
-            if min_dict["dT"] > res_dict["dT"]:
-                min_dict = res_dict
-
-        self.T_limits = min_dict["new_limits"]["T"]
-        self.value_limits = min_dict["new_limits"]["var"]
-
-    def __get_quality_iteration_step_result(self, new_T):
-
-        T_limits_new = deepcopy(self.T_limits)
-        value_limits_new = deepcopy(self.value_limits)
-        new_var = self.__calculate_var(new_T)
-
-        if new_var * self.value_limits[1] < 0:
-
-            T_limits_new[0] = new_T
-            value_limits_new[0] = new_var
-
-        else:
-
-            T_limits_new[1] = new_T
-            value_limits_new[1] = new_var
-
-        return {
-
-            "T_new": new_T,
-            "var_new": new_var,
-            "new_limits": {
-
-                "T": T_limits_new,
-                "var": value_limits_new
-
-            },
-            "dT": abs(T_limits_new[1] - T_limits_new[0])
-
-        }
-
-    def __calculate_var(self, T_value):
-
-        value = self.RPHandler.calculate("TQ", self.other_var, T_value, self.q_value)
-        error = value - self.var_value
-        return error
-
-
-class RefPropHandler:
-
-    def __init__(self, fluids: list, composition: list, unit_system="SI WITH C"):
-
-        # If REFPROP is available the program uses it, otherwise COOLPROP is used
-
-        #   DEFAULT MEASURE UNITS:
-        #
-        #   Temperature:        [°C]
-        #   Pressure:           [MPa]
-        #   Density:            [kg/m^3]
-        #   Enthalpy:           [kJ/kg]
-        #   Entropy:            [kJ/(kg*K)]
-        #   Speed:              [m/s]
-        #   Kinematic vis.:     [cm^2/s]
-        #   Viscosity:          [uPa*s]
-        #   Thermal cond.:      [mW/(m*K)]
-        #   Surface tension:    [mN/m]
-        #   Molar Mass:         [kg/kmol]
-        #   Heat Capacity:      [kJ/(kg*K)]
-
-        self.refprop = REFPROPFunctionLibrary(RP_EXEC)
-        self.refprop.SETPATHdll(RP_EXEC)
-
-        self.fluids = fluids
-        self.composition = composition
-        self.unit_system = unit_system
-
-    def set_reference_state(self, T_0=20, P_0=101325, T_0unit="C", P_0unit="Pa", old_unit_system=None):
-
-        T_unit = self.return_units("T")
-        P_unit = self.return_units("P")
-
-        if old_unit_system is not None:
-
-            T_unit_old = self.return_units("T", unit_system=old_unit_system)
-            P_unit_old = self.return_units("P", unit_system=old_unit_system)
-
-            self.T_0, info = convert_variable(self.T_0, "T",  T_unit_old, T_unit)
-            self.P_0, info = convert_variable(self.P_0, "p",  P_unit_old, P_unit)
-
-        else:
-
-            self.T_0, info = convert_variable(T_0, "T", T_0unit, T_unit)
-            self.P_0, info = convert_variable(P_0, "p", P_0unit, P_unit)
-
-        self.H_0 = self.calculate("TP", "H", self.T_0, self.P_0)
-        self.S_0 = self.calculate("TP", "s", self.T_0, self.P_0)
-
-    def calculate(self, str_in: str, str_out: str, a: float, b: float):
-
-        global GLOBALCounter
-
-        if str_in in CODES_TO_BE_ITERATED:
-
-            qi = QualityIteration(self, str_in, str_out, a, b)
-            return qi.result
-
-        if str_out == "Q":
-
-            if self.unit_is_mass_based:
-
-                str_out = "QMASS"
-
-            else:
-
-                str_out = "QMOLE"
-
-        GLOBALCounter += 1
-        self.refprop.SETFLUIDSdll('*'.join(self.fluids))
-        return self.refprop.REFPROP1dll(str_in, str_out, self.SI, 1, a, b, self.composition).c
-
-    def get_composition(self, phase, T, P):
-
-        # TODO
-        return self.composition
-
-    def return_units(self, property_name, unit_system=None):
-
-        if unit_system is None:
-
-            return_value = constants.get_units(property_name, self.unit_system)
-
-        else:
-
-            return_value = constants.get_units(property_name, unit_system)
-
-        if "Unknown" in return_value:
-
-            return ""
-
-        else:
-
-            return return_value
-
-    @property
-    def unit_system(self):
-
-        try:
-            return self.__unit_system
-        except:
-            return None
-
-    @unit_system.setter
-    def unit_system(self, unit_system_input):
-
-        old_unit_system = self.unit_system
-        self.__unit_system = unit_system_input
-
-        try:
-
-            self.SI = self.refprop.GETENUMdll(0, self.__unit_system).iEnum
-
-        except:
-
-            self.SI = self.refprop.GETENUMdll(0, "SI WITH C").iEnum
-
-            warning_message = (
-
-                "{} unit system is not supported, "
-                "{} has been used instead\n"
-                "Check in the refprop manual for the correct"
-                "name of the system that you wanted to use"
-
-            ).format(self.__unit_system, "SI WITH C")
-
-            warnings.warn(warning_message)
-            self.__unit_system = "SI WITH C"
-
-        # Evaluate Critical and Triple Point
-        self.TC = self.calculate("", "TC", 0, 0)
-        self.PC = self.calculate("", "PC", 0, 0)
-        self.T_trip = self.calculate("", "TTRP", 0, 0)
-        self.P_trip = self.calculate("", "PTRP", 0, 0)
-
-        self.set_reference_state(old_unit_system=old_unit_system)
-
-    @property
-    def unit_is_mass_based(self):
-
-        return not ("mol" in self.return_units("s"))
-
-    @property
-    def rp_version(self):
-
-        return self.refprop.RPVersion()
-
-    @property
-    def T_0_in_K(self):
-
-        T_unit = self.return_units("T")
-        TO, info = convert_variable(self.T_0, "T",  T_unit, "K")
-        return TO
-
-
-class ThermodynamicVariable:
-
-    def __init__(self, name: str):
-
-        self.value = None
-        self.name = name
-        self.refprop_name = constants.get_refprop_name(name)
-        self.is_user_defined = False
-        self.order = 0
-
-    @property
-    def is_empty(self):
-        return self.value is None
-
-    def convert(self, rp_handler:RefPropHandler, to_unit_system):
-
-        value, info = convert_variable(
-
-            self.value, self.refprop_name,
-            rp_handler.return_units(self.refprop_name),
-            rp_handler.return_units(self.refprop_name, to_unit_system)
-
-        )
-
-        # TODO implement conversion mass / mole based system
-
-        return value
-
-    def __gt__(self, other):
-        # enables comparison
-        # self > other
-
-        return self.order > other.order
-
-    def __lt__(self, other):
-        # enables comparison
-        # self < other
-
-        return self.order < other.order
-
-    def __le__(self, other):
-        return not self.__gt__(other)
-
-    def __ge__(self, other):
-        return not self.__lt__(other)
+)
 
 
 class AbstractThermodynamicPoint(ABC):
 
     @classmethod
-    def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all",
-                        unit_system="SI WITH C"):
+    def init_from_fluid(
 
-        RP = RefPropHandler(fluids, composition, unit_system)
+            cls, fluids: list, composition: list,
+            other_variables="all", calculate_on_need="all",
+            unit_system=DEFAULT_UNIT_SYSTEM
+
+    ):
+
+        RP = init_handler(
+
+            chosen_subclass=RefPropHandler,
+            fluids=fluids, composition=composition,
+            unit_system=unit_system
+
+        )
         return cls(RP, other_variables, calculate_on_need)
 
     def __init__(self, refprop: RefPropHandler, other_variables="all", calculate_on_need="all"):
@@ -380,6 +47,7 @@ class AbstractThermodynamicPoint(ABC):
 
         self.calculated_variables = list()
         self.__initialize_calculate_on_need_variables(calculate_on_need)
+        self.__metastability = ""
 
     def __initialize_state_variables(self):
 
@@ -479,10 +147,10 @@ class AbstractThermodynamicPoint(ABC):
 
                 value = self.RPHandler.calculate(
 
-                    input_str,
                     REFPROP_CODE,
-                    not_none_variables[0].value,
-                    not_none_variables[1].value
+                    not_none_variables[0],
+                    not_none_variables[1],
+                    metastb=self.__metastability
 
                 )
 
@@ -490,10 +158,10 @@ class AbstractThermodynamicPoint(ABC):
 
                 P_value = self.RPHandler.calculate(
 
-                    input_str,
                     "P",
-                    not_none_variables[0].value,
-                    not_none_variables[1].value
+                    not_none_variables[0],
+                    not_none_variables[1],
+                    metastb=self.__metastability
 
                 )
 
@@ -528,7 +196,7 @@ class AbstractThermodynamicPoint(ABC):
 
             self.__update_variables()
 
-    def get_variable(self, variable_name: str):
+    def get_variable(self, variable_name: str, other_unit_system=None):
 
         variable = self.__get_variable_from_name(variable_name)
 
@@ -538,7 +206,18 @@ class AbstractThermodynamicPoint(ABC):
 
                 self.__calculate_variable(variable)
 
-            return variable.value
+            if other_unit_system is None:
+
+                return variable.value
+
+            else:
+
+                return variable.convert(
+
+                    rp_handler=self.RPHandler,
+                    to_unit_system=other_unit_system
+
+                )
 
         if variable_name == "exergy":
 
@@ -763,6 +442,36 @@ class AbstractThermodynamicPoint(ABC):
         """
         pass
 
+    @property
+    def metastability(self):
+
+
+        if self.__metastability == "L":
+
+            return "Liquid"
+
+        if self.__metastability == "V":
+
+            return "Vapour"
+
+        return "Equilibrium"
+
+    @metastability.setter
+    def metastability(self, metastability: str):
+
+        metastability = metastability.lower()
+        if metastability == "liq" or metastability == "liquid" or metastability == "v" or metastability == ">":
+
+            self.__metastability = "L"
+
+        elif metastability == "vap" or metastability == "vapour" or metastability == "vapor" or metastability == "v" or metastability == "<":
+
+            self.__metastability = "V"
+
+        else:
+
+            self.__metastability = ""
+
     def copy_state_to(self, target_point):
 
         for variable in self.state_var_list[:2]:
@@ -845,7 +554,7 @@ class AbstractThermodynamicPoint(ABC):
 
             """
 
-            if  i + step < len(self.variables):
+            if i + step < len(self.variables):
 
                 string_to_display += self.__return_variable_unit_str(self.variables[i: i + step])
 
@@ -921,6 +630,26 @@ class AbstractThermodynamicPoint(ABC):
 
         return string_to_display
 
+    def __eq__(self, other):
+
+        """check if this is equal to another instance"""
+        if not (self.calculation_ready and other.calculation_ready):
+            return False
+
+        if not (self.RPHandler.fluids == other.RPHandler.fluids):
+            return False
+
+        if not (self.RPHandler.composition == other.RPHandler.composition):
+            return False
+
+        if not (self.get_variable("P") == other.get_variable("P", other_unit_system=self.RPHandler.unit_system)):
+            return False
+
+        if not (self.get_variable("rho") == other.get_variable("rho", other_unit_system=self.RPHandler.unit_system)):
+            return False
+
+        return True
+
 
 class ThermodynamicPoint(AbstractThermodynamicPoint):
 
@@ -929,15 +658,21 @@ class ThermodynamicPoint(AbstractThermodynamicPoint):
 
         if rp_handler is None:
 
-            rp_handler = RefPropHandler(fluids, composition, unit_system)
+            rp_handler = init_handler(
+
+                chosen_subclass=RefPropHandler,
+                fluids=fluids, composition=composition,
+                unit_system=unit_system
+
+            )
 
         super().__init__(rp_handler, other_variables=other_variables, calculate_on_need=calculate_on_need)
 
     def other_calculation(self):
         pass
 
-    def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all",
-                        unit_system="SI WITH C"):
+    @classmethod
+    def init_from_fluid(cls, fluids: list, composition: list, other_variables="all", calculate_on_need="all", unit_system="SI WITH C"):
 
         return ThermodynamicPoint(fluids, composition, other_variables, calculate_on_need, unit_system)
 
@@ -959,11 +694,12 @@ class ThermodynamicPoint(AbstractThermodynamicPoint):
 
     def get_alternative_unit_system(self, new_unit_system):
 
-        rp_handler = RefPropHandler(
+        rp_handler = init_handler(
 
-            self.RPHandler.fluids,
-            self.RPHandler.composition,
-            new_unit_system
+            chosen_subclass=RefPropHandler,
+            fluids=self.RPHandler.fluids,
+            composition=self.RPHandler.composition,
+            unit_system=new_unit_system
 
         )
 
@@ -980,3 +716,4 @@ class ThermodynamicPoint(AbstractThermodynamicPoint):
 
         self.copy_state_to(tp)
         return tp
+    

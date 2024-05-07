@@ -62,7 +62,7 @@ independent state variable have been set. It can be useful for example for the e
 for a fluid flowing in a pipe.
 
 ```python
-from REFPROPConnector import AbstractThermodynamicPoint, RefPropHandler
+from REFPROPConnector import AbstractThermodynamicPoint, RefPropHandler, init_handler
 import numpy as np
 
 
@@ -75,7 +75,12 @@ class TubeSection(AbstractThermodynamicPoint):
         self.flow_rate = flow_rate
         self.Re = 0.
         
-        refprop = RefPropHandler(["air"], [1])
+        refprop = init_handler(
+
+            chosen_subclass=RefPropHandler,
+            fluids=["air"], composition=[1]
+            
+        )
 
         super().__init__(refprop)
 
@@ -122,6 +127,19 @@ tp.list_properties()
 tp.list_unit_systems()
 ```
 Default unit system is __SI with C__
+
+### Metastable Calculation
+
+You can force the state to represent a metastable condition as follows:  
+
+```python
+from REFPROPConnector import ThermodynamicPoint
+
+tp = ThermodynamicPoint(["water"], [1.], unit_system="MASS BASE SI")
+tp.metastability = "liq" # or "vap" for vapour metastable condition
+```
+Acceptable keywords for metastability are ["liquid", "liq", "l", ">"] for the liquid metastable state, 
+or ["vap", "vapour", "vapor", "v", "<"] for the vapour state (keywords **are not** case-sensitive).
 
 ### Diagram Plotter
 The _DiagramPlotter_ class can be used to plot a specific state diagram that can be then used to describe state 

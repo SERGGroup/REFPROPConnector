@@ -19,6 +19,7 @@ def convert_variable(variable_value, variable_name, from_unit, to_unit):
 
     return result, conversion_info
 
+
 def __conversion_multiply(value, conversion_info, from_unit, to_unit):
 
     multiplier = conversion_info.conversion_dict[from_unit]["mult"]
@@ -26,6 +27,7 @@ def __conversion_multiply(value, conversion_info, from_unit, to_unit):
 
     multiplier = conversion_info.conversion_dict[to_unit]["mult"]
     return tmp_value / multiplier
+
 
 def __conversion_sum_mult(value, conversion_info, from_unit, to_unit):
 

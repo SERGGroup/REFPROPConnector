@@ -1,5 +1,5 @@
 from REFPROPConnector import ThermodynamicPoint, DiagramPlotter, DiagramPlotterOptions
-from REFPROPConnector.Tools.units_converter import convert_variable
+from REFPROPConnector.Handlers.Tools.units_converter import convert_variable
 from REFPROPConnector.Support.constants import get_refprop_name
 from matplotlib import pyplot as plt
 import unittest
@@ -112,7 +112,7 @@ class TestREFPROPConnector(unittest.TestCase):
 
         tp.reference_state = tp_ref
 
-        self.assertEqual(tp.reference_state.get_variable("T"), T_ref + 273.15)
+        self.assertEqual(tp.reference_state.get_variable("T"), T_ref)
 
     def test_QH_flash(self):
 
@@ -177,6 +177,43 @@ class TestREFPROPConnector(unittest.TestCase):
         plotter.plot(ax_1)
         plt.show()
 
+    def test_equals(self):
+
+        tp = ThermodynamicPoint(["Carbon Dioxide"], [1])
+        tp.set_variable("T", 100)
+        tp.set_variable("P", 0.1)
+
+        tp_new = tp.get_alternative_unit_system("MASS BASE SI")
+        equals = (tp == tp_new)
+
+        self.assertEqual(True, equals)
+
+    def test_metastability(self):
+
+        tp = ThermodynamicPoint(["Carbon Dioxide"], [1])
+
+        t_in = 10
+        tp.set_variable("T", t_in)
+        tp.set_variable("Q", 0)
+        rho_liq = tp.get_variable("rho")
+
+        tp.set_variable("T", t_in)
+        tp.set_variable("Q", 1)
+        rho_vap = tp.get_variable("rho")
+
+        tp_metastb = tp.duplicate()
+        tp_metastb.metastability = "liquid"
+        tp_metastb.set_variable("rho", rho_liq * 0.98 + rho_vap * 0.02)
+        tp_metastb.set_variable("T", t_in)
+
+        tp.set_variable("rho", rho_liq * 0.98 + rho_vap * 0.02)
+        tp.set_variable("T", t_in)
+        print(tp.get_variable("P"))
+        print(tp_metastb.get_variable("P"))
+
+        self.assertTrue(tp.get_variable("P") > tp_metastb.get_variable("P"))
+
 
 if __name__ == '__main__':
+
     unittest.main()
