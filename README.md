@@ -141,6 +141,22 @@ tp.metastability = "liq" # or "vap" for vapour metastable condition
 Acceptable keywords for metastability are ["liquid", "liq", "l", ">"] for the liquid metastable state, 
 or ["vap", "vapour", "vapor", "v", "<"] for the vapour state (keywords **are not** case-sensitive).
 
+
+### Static and Stagnation condition evaluation
+
+You can evaluate either the static point given the total condition and the speed or the stagnation 
+condition given the static ones by using the following commands:
+```python
+from REFPROPConnector import ThermodynamicPoint
+
+tp = ThermodynamicPoint(["water"], [1.], unit_system="MASS BASE SI")
+speed = 300     # m/s
+static_point = tp.get_static_point(speed=speed)
+total_point = tp.get_stagnation_point(speed=speed)
+
+```
+The speed value must be ginve in m/s!
+
 ### Diagram Plotter
 The _DiagramPlotter_ class can be used to plot a specific state diagram that can be then used to describe state 
 transformations. The diagram can be personalized using the _DiagramPlotterOptions_ class. 

@@ -29,6 +29,16 @@ class ThermodynamicVariable:
 
         return value
 
+    def set_from_different_us(self, value, rp_handler, from_unit_system):
+
+        self.value, info = convert_variable(
+
+            value, self.refprop_name,
+            rp_handler.return_units(self.refprop_name, from_unit_system),
+            rp_handler.return_units(self.refprop_name)
+
+        )
+
     def __gt__(self, other):
         # enables comparison
         # self > other
