@@ -9,7 +9,8 @@ import sty
 from REFPROPConnector.Handlers import (
 
     RefPropHandler, CODES_TO_BE_ITERATED, init_handler,
-    ThermodynamicVariable, constants, DEFAULT_UNIT_SYSTEM
+    ThermodynamicVariable, constants, DEFAULT_UNIT_SYSTEM,
+    SI_UNIT_SYSTEM
 
 )
 
@@ -431,14 +432,9 @@ class AbstractThermodynamicPoint(ABC):
 
         self.RPHandler.composition = new_composition
 
-    @staticmethod
-    def print_global_counter(reset=True):
+    def print_global_counter(self, reset=True):
 
-        global GLOBALCounter
-        print(GLOBALCounter)
-
-        if reset:
-            GLOBALCounter = 0
+        self.RPHandler.print_global_counter(reset=reset)
 
     @abstractmethod
     def duplicate(self):
@@ -532,19 +528,18 @@ class AbstractThermodynamicPoint(ABC):
     def __get_dynamic_variation(self, mult, speed, keep_metastability=False, integrate=True):
 
         other_point = self.duplicate()
-        si_unit_system = "MASS BASE SI"
 
         if self.__tmp_si_point is None:
-            self.__tmp_si_point = self.get_alternative_unit_system(si_unit_system)
+            self.__tmp_si_point = self.get_alternative_unit_system(SI_UNIT_SYSTEM)
 
         self.copy_state_to(self.__tmp_si_point)
 
         if keep_metastability:
             other_point.metastability = self.__metastability
 
-        h0 = self.get_variable("H", other_unit_system=si_unit_system)
-        p0 = self.get_variable("P", other_unit_system=si_unit_system)
-        s0 = self.get_variable("S", other_unit_system=si_unit_system)
+        h0 = self.get_variable("H", other_unit_system=SI_UNIT_SYSTEM)
+        p0 = self.get_variable("P", other_unit_system=SI_UNIT_SYSTEM)
+        s0 = self.get_variable("S", other_unit_system=SI_UNIT_SYSTEM)
         dh_dyn = speed ** 2 / 2
 
         if not integrate:
@@ -578,8 +573,8 @@ class AbstractThermodynamicPoint(ABC):
                     warnings.warn("It was impossible to reach integral dynamic solution, constant rho solution returned instead")
                     dp_dyn = dh_dyn * self.__tmp_si_point("rho")
 
-        other_point.set_variable("H", h0 + mult * dh_dyn, other_unit_system=si_unit_system)
-        other_point.set_variable("P", p0 + mult * dp_dyn, other_unit_system=si_unit_system)
+        other_point.set_variable("H", h0 + mult * dh_dyn, other_unit_system=SI_UNIT_SYSTEM)
+        other_point.set_variable("P", p0 + mult * dp_dyn, other_unit_system=SI_UNIT_SYSTEM)
 
         return other_point
 

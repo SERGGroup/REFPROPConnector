@@ -1,7 +1,7 @@
 from os import path, listdir
 import setuptools
 
-VERSION = "0.3.10"
+VERSION = "0.3.11"
 
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
