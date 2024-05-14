@@ -8,6 +8,7 @@ GLOBALCounter = 0
 ACTIVE_HANDLERS = []
 HANDLER_SUBCLASSES = {}
 DEFAULT_UNIT_SYSTEM = "SI WITH C"
+SI_UNIT_SYSTEM = "MASS BASE SI"
 
 
 class BaseHandler(ABC):
@@ -190,13 +191,25 @@ class BaseHandler(ABC):
         TO, info = convert_variable(self.T_0, "T",  T_unit, "K")
         return TO
 
+    @staticmethod
+    def print_global_counter(reset=True):
+
+        global GLOBALCounter
+        print(GLOBALCounter)
+
+        if reset:
+            GLOBALCounter = 0
+
     def __init_subclass__(cls, **kwargs):
 
+        global HANDLER_SUBCLASSES
         super().__init_subclass__(**kwargs)
-        HANDLER_SUBCLASSES[cls.__name__] = cls
+        HANDLER_SUBCLASSES.update({cls.__name__: cls})
 
 
 def find_handler(input_handler_dict):
+
+    global ACTIVE_HANDLERS
 
     for handler_dict in ACTIVE_HANDLERS:
 
@@ -217,6 +230,8 @@ def dicts_are_equal(curr_dict, other_dict):
 
 
 def init_handler(chosen_subclass: type(BaseHandler), fluids: list, composition: list, unit_system=DEFAULT_UNIT_SYSTEM):
+
+    global ACTIVE_HANDLERS
 
     handler_dict = {
 
