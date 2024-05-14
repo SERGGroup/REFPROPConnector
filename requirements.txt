@@ -5,4 +5,5 @@ future~=0.18.2
 sty~=1.0.0rc2
 matplotlib
 coolprop
+scipy
 tqdm

@@ -1,3 +1,6 @@
+import warnings
+
+from scipy.integrate import solve_ivp
 from abc import ABC, abstractmethod
 from sty import fg, bg, ef, rs
 import sty
@@ -48,6 +51,7 @@ class AbstractThermodynamicPoint(ABC):
         self.calculated_variables = list()
         self.__initialize_calculate_on_need_variables(calculate_on_need)
         self.__metastability = ""
+        self.__tmp_si_point = None
 
     def __initialize_state_variables(self):
 
@@ -176,7 +180,7 @@ class AbstractThermodynamicPoint(ABC):
     def other_calculation(self):
         pass
 
-    def set_variable(self, variable_name: str, variable_value: float):
+    def set_variable(self, variable_name: str, variable_value: float, other_unit_system=None):
 
         input_refprop_name = constants.get_refprop_name(variable_name)
 
@@ -184,7 +188,14 @@ class AbstractThermodynamicPoint(ABC):
 
             if variable.refprop_name == input_refprop_name:
 
-                variable.value = variable_value
+                if other_unit_system is None:
+
+                    variable.value = variable_value
+
+                else:
+
+                    variable.set_from_different_us(variable_value, self.RPHandler, other_unit_system)
+
                 variable.order = 0
 
                 break
@@ -442,6 +453,32 @@ class AbstractThermodynamicPoint(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_alternative_unit_system(self, new_unit_system):
+
+        rp_handler = init_handler(
+
+            chosen_subclass=RefPropHandler,
+            fluids=self.RPHandler.fluids,
+            composition=self.RPHandler.composition,
+            unit_system=new_unit_system
+
+        )
+
+        tp = ThermodynamicPoint(
+
+            self.RPHandler.fluids,
+            self.RPHandler.composition,
+            rp_handler=rp_handler,
+            unit_system=new_unit_system,
+            other_variables=self.inputs["other_variables"],
+            calculate_on_need=self.inputs["calculate_on_need"]
+
+        )
+
+        self.copy_state_to(tp)
+        return tp
+
     @property
     def metastability(self):
 
@@ -471,6 +508,80 @@ class AbstractThermodynamicPoint(ABC):
         else:
 
             self.__metastability = ""
+
+    def get_static_point(self, speed, keep_metastability=False, integrate=True):
+
+        return self.__get_dynamic_variation(
+
+            mult=-1, speed=speed,
+            keep_metastability=keep_metastability,
+            integrate=integrate
+
+        )
+
+    def get_stagnation_point(self, speed, keep_metastability=False, integrate=True):
+
+        return self.__get_dynamic_variation(
+
+            mult=1, speed=speed,
+            keep_metastability=keep_metastability,
+            integrate=integrate
+
+        )
+
+    def __get_dynamic_variation(self, mult, speed, keep_metastability=False, integrate=True):
+
+        other_point = self.duplicate()
+        si_unit_system = "MASS BASE SI"
+
+        if self.__tmp_si_point is None:
+            self.__tmp_si_point = self.get_alternative_unit_system(si_unit_system)
+
+        self.copy_state_to(self.__tmp_si_point)
+
+        if keep_metastability:
+            other_point.metastability = self.__metastability
+
+        h0 = self.get_variable("H", other_unit_system=si_unit_system)
+        p0 = self.get_variable("P", other_unit_system=si_unit_system)
+        s0 = self.get_variable("S", other_unit_system=si_unit_system)
+        dh_dyn = speed ** 2 / 2
+
+        if not integrate:
+
+            dp_dyn = dh_dyn * self.__tmp_si_point.get_variable("rho")
+
+        else:
+
+            try:
+
+                self.__tmp_si_point.set_variable("H", h0 + mult * dh_dyn)
+                self.__tmp_si_point.set_variable("S", s0)
+                dp_dyn = mult * (self.__tmp_si_point.get_variable("P") - p0)
+
+            except:
+
+                def f(t, y):
+
+                    self.__tmp_si_point.set_variable("H", h0 + mult * t)
+                    self.__tmp_si_point.set_variable("P", p0 + mult * y[0])
+
+                    return self.__tmp_si_point.get_variable("rho")
+
+                try:
+
+                    sol = solve_ivp(f, [0, dh_dyn], [0], t_eval=[dh_dyn])
+                    dp_dyn = sol.y[0][0]
+
+                except:
+
+                    warnings.warn("It was impossible to reach integral dynamic solution, constant rho solution returned instead")
+                    dp_dyn = dh_dyn * self.__tmp_si_point("rho")
+
+        other_point.set_variable("H", h0 + mult * dh_dyn, other_unit_system=si_unit_system)
+        other_point.set_variable("P", p0 + mult * dp_dyn, other_unit_system=si_unit_system)
+
+        return other_point
 
     def copy_state_to(self, target_point):
 

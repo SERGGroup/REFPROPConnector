@@ -2,6 +2,7 @@ from REFPROPConnector import ThermodynamicPoint, DiagramPlotter, DiagramPlotterO
 from REFPROPConnector.Handlers.Tools.units_converter import convert_variable
 from REFPROPConnector.Support.constants import get_refprop_name
 from matplotlib import pyplot as plt
+import numpy as np
 import unittest
 
 
@@ -212,6 +213,34 @@ class TestREFPROPConnector(unittest.TestCase):
         print(tp_metastb.get_variable("P"))
 
         self.assertTrue(tp.get_variable("P") > tp_metastb.get_variable("P"))
+
+    def test_dynamic_variation(self):
+
+        tp = ThermodynamicPoint(["Air"], [1])
+
+        t_in = 10
+        p_in = 0.101325
+        speed = 300
+
+        tp.set_variable("T", t_in)
+        tp.set_variable("P", p_in)
+
+        ss = tp.get_variable("W")
+        gamma = tp.get_variable("CP/CV")
+        ma = speed / ss
+
+        for i in range(500):
+            stag_point = tp.get_stagnation_point(speed, integrate=True)
+
+        dp_calc = stag_point.get_variable("P") - p_in
+        dp_formula = p_in * (np.power((1 + (gamma - 1) / 2 * ma ** 2), gamma / (gamma - 1)) - 1)
+
+        error_stag = np.abs((dp_calc - dp_formula) / dp_formula)
+
+        static_point = stag_point.get_static_point(speed, integrate=True)
+        error_stat = np.abs((static_point.get_variable("P") - p_in) / p_in)
+
+        self.assertTrue((error_stag < 0.001) and (error_stat < 0.001))
 
 
 if __name__ == '__main__':
