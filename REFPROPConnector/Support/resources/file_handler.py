@@ -19,13 +19,27 @@ __REFPROP_PATH_FILE = os.path.join(__CURRENT_DIR, __REFPROP_EXECUTABLE_PATH_FILE
 # ---------------------------------
 
 
-def retreive_RP_exec(failure_possible=True):
+def retreive_RP_exec(failure_possible=True, file_path=None, ignore_default=False):
 
-    try:
+    __RP_PATH = None
 
-        __RP_PATH = os.environ['RPPREFIX']
+    if file_path is not None:
 
-    except:
+        __RP_PATH = file_path
+
+    else:
+
+        try:
+
+            if not ignore_default:
+
+                __RP_PATH = os.environ['RPPREFIX']
+
+        except:
+
+            __RP_PATH = None
+
+    if __RP_PATH is None:
 
         root = tk.Tk()
         root.withdraw()

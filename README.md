@@ -37,6 +37,24 @@ from REFPROPConnector import retreive_RP_exec
 
 retreive_RP_exec()
 ```
+
+If you have multiple or conflicting REFPROP installations, you can force the program not to use the default executable 
+path by using the option: 
+```python
+from REFPROPConnector import retreive_RP_exec
+
+retreive_RP_exec(ignore_default=True)
+```
+
+Alternatively you can explicitly provide the installation folder path using
+```python
+from REFPROPConnector import retreive_RP_exec
+
+retreive_RP_exec(file_path="<your path to RP installation>")
+```
+
+__IMPORTANT:__ Each time you run *"retreive_RP_exec"* open the program that is executing your python code (such as the 
+Terminal, PyCharm or Spider) in *administrator mode* otherwise the call may not have any effect.
     
 ### Basic Usage
 
