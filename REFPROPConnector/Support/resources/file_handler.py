@@ -9,6 +9,17 @@ __CURRENT_DIR = os.path.dirname(__file__)
 __REFPROP_NAMES_FILE = 'REFPROP_names.xml'
 __REFPROP_EXECUTABLE_PATH_FILE = 'REFPROP_exec.dat'
 __REFPROP_PATH_FILE = os.path.join(__CURRENT_DIR, __REFPROP_EXECUTABLE_PATH_FILE)
+__RP_EXEC = None
+
+if os.path.isfile(__REFPROP_PATH_FILE):
+
+    if os.path.isfile(__REFPROP_PATH_FILE):
+
+        with open(__REFPROP_PATH_FILE) as f:
+            lines = f.readlines()
+
+        if os.path.isfile(str(lines[0])):
+            RP_EXEC = str(lines[0])
 
 # ---------------------------------
 # ---------------------------------
@@ -86,22 +97,14 @@ def retreive_RP_exec(failure_possible=True, file_path=None, ignore_default=False
 
     return None
 
-RP_EXEC = None
+def get_RP_EXEC():
 
-if os.path.isfile(__REFPROP_PATH_FILE):
+    global __RP_EXEC
 
-    if os.path.isfile(__REFPROP_PATH_FILE):
+    if __RP_EXEC is None:
+        __RP_EXEC = retreive_RP_exec(failure_possible=False)
 
-        with open(__REFPROP_PATH_FILE) as f:
-            lines = f.readlines()
-
-        if os.path.isfile(str(lines[0])):
-            RP_EXEC = str(lines[0])
-
-if RP_EXEC is None:
-
-    RP_EXEC = retreive_RP_exec(failure_possible=False)
-
+    return __RP_EXEC
 
 # ----------------------------------
 # ----------------------------------
