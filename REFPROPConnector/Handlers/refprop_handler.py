@@ -2,7 +2,7 @@ import warnings
 
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 
-from REFPROPConnector.Support.resources.file_handler import RP_EXEC
+from REFPROPConnector.Support.resources.file_handler import get_RP_EXEC
 from .__base_handler import BaseHandler, DEFAULT_UNIT_SYSTEM, CODES_TO_BE_ITERATED, QualityIteration
 
 
@@ -27,8 +27,8 @@ class RefPropHandler(BaseHandler):
         #   Molar Mass:         [kg/kmol]
         #   Heat Capacity:      [kJ/(kg*K)]
 
-        self.refprop = REFPROPFunctionLibrary(RP_EXEC)
-        self.refprop.SETPATHdll(RP_EXEC)
+        self.refprop = REFPROPFunctionLibrary(get_RP_EXEC())
+        self.refprop.SETPATHdll(get_RP_EXEC())
 
         super().__init__(fluids, composition, unit_system)
 
