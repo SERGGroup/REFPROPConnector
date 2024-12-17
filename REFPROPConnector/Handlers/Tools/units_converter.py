@@ -13,6 +13,10 @@ def convert_variable(variable_value, variable_name, from_unit, to_unit):
 
         result = __conversion_sum_mult(variable_value, conversion_info, from_unit, to_unit)
 
+    elif from_unit == to_unit:
+
+        result = variable_value
+
     else:
 
         return None, conversion_info
