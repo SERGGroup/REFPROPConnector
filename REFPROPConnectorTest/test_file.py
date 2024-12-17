@@ -51,6 +51,16 @@ class TestREFPROPConnector(unittest.TestCase):
 
         self.assertEqual(20+273.15, tp_new.get_variable("T"))
 
+    def test_convert_quality(self):
+
+        tp = ThermodynamicPoint(["Carbon Dioxide"], [1])
+        tp.set_variable("P", 2)
+        tp.set_variable("Q", 1)
+
+        tp_new = tp.get_alternative_unit_system("MASS BASE SI")
+
+        self.assertEqual(tp.get_variable("T")+273.15, tp_new.get_variable("T"))
+
     def test_copy(self):
 
         tp = ThermodynamicPoint(["air"], [1])
