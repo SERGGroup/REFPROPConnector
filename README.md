@@ -1,13 +1,13 @@
 # REFPROP connector
 
-__REFPROP connector__ is a tools developed by the [SERG research group](https://www.dief.unifi.it/vp-177-serg-group-english-version.html) 
+__REFPROP connector__ is a tool developed by the [SERG research group](https://www.dief.unifi.it/vp-177-serg-group-english-version.html) 
 of the [University of Florence](https://www.unifi.it/changelang-eng.html) for launching [REFPROP](https://www.nist.gov/srd/refprop) 
-calculation and retrieving results from python. 
+calculations and retrieving results from Python. 
 
-In order to use the code you must have both REFPROP and the [REFPROP wrappers for Python](https://github.com/usnistgov/REFPROP-wrappers) 
+To use the code, you must have both REFPROP and the [REFPROP wrappers for Python](https://github.com/usnistgov/REFPROP-wrappers) 
 installed and properly working.
 
-The scope of this library is to make the usage of the refprop wrappers simpler.
+The purpose of this library is to make the usage of the refprop wrappers simpler.
 
 ### Download and installation 
 
@@ -18,19 +18,19 @@ pip install REFPROP_connector
 ```
 
 ### First Steps
-Once the installation has been completed the user can import the tool and initialize the connector itself.
+Once the installation is complete, you can import the tool and initialize the connector itself.
 ```python
 from REFPROPConnector import ThermodynamicPoint
 
 tp = ThermodynamicPoint(["air"], [1.])
 
 ```
-__An important aspects to keep in mind for the initialization:__
+__Important aspects to keep in mind for initialization:__
 
-  * A file-dialog __could__ appear the first time that the connector is imported __asking the user to select the REFPROP 
-    installation folder__ (usually it's _"C:\Program Files (x86)\REFPROP"_). 
-    Once the executable path has been selected, the program will keep it in memory in order to avoid a new appearance 
-    of the file-dialog. The stored executable can be modified calling the following function:
+  * A file-dialog __may__ appear the first time the connector is imported __asking the user to select the REFPROP 
+    installation folder__ (usually _"C:\Program Files (x86)\REFPROP"_). 
+    Once the executable path has been selected, the program will keep it in memory to avoid a new appearance 
+    of the file-dialog. The stored executable can be modified by calling the following function:
     
 ```python
 from REFPROPConnector import retreive_RP_exec
@@ -46,7 +46,7 @@ from REFPROPConnector import retreive_RP_exec
 retreive_RP_exec(ignore_default=True)
 ```
 
-Alternatively you can explicitly provide the installation folder path using
+Alternatively, you can explicitly provide the installation folder path using
 ```python
 from REFPROPConnector import retreive_RP_exec
 
@@ -58,8 +58,8 @@ Terminal, PyCharm or Spider) in *administrator mode* otherwise the call may not 
     
 ### Basic Usage
 
-Each _ThermodynamicPoint_ class instance represent a thermodynamic state, hence you had to provide at least 
-__two indipendent state variables__ in order to calculate the others.
+Each _ThermodynamicPoint_ class instance represents a thermodynamic state, so you must provide at least 
+__two independent state variables__ to calculate the others.
 
 
 ```python
@@ -70,13 +70,13 @@ tp = ThermodynamicPoint(["water"], [1.])
 tp.set_variable("P", 0.101325)     # P in MPa (ambient pressure)
 tp.set_variable("Q", 0.5)          # vapour quality for multiphase condition
 
-T_sat = tp.get_variable("T")       # saturation temperature in celsius (100 °C)
+T_sat = tp.get_variable("T")       # saturation temperature in Celsius (100 °C)
 ```
 
 ### Abstract Class
 
-_AbstractThermodynamicPoint_ is a class that can be overwritten in order to perform some calculation once both 
-independent state variable have been set. It can be useful for example for the evaluation of the reynolds number 
+_AbstractThermodynamicPoint_ is a class that can be overwritten to perform some calculation once both 
+independent state variables have been set. It can be useful, for example, for the evaluation of the Reynolds number 
 for a fluid flowing in a pipe.
 
 ```python
@@ -132,9 +132,9 @@ if __name__ == "__main__":
 
 ### Unit system and state variable list
 
-Variable that can be calculated can be listed using _list_properties_ method from both _ThermodynamicPoint_ and 
-_AbstractThermodynamicPoint_ (the name __is not case-sensitive__). Finally, user can also select the unit system to be 
-used in the calculation, a list of possible unit system can be revived calling the method _list_unit_systems()_ 
+Variables that can be calculated can be listed using the _list_properties_ method from both _ThermodynamicPoint_ and 
+_AbstractThermodynamicPoint_ (the name __is not case-sensitive__). Finally, the user can also select the unit system to be 
+used in the calculation; a list of possible unit systems can be retrieved by calling the method _list_unit_systems()_ 
 (current unit_system will be highlighted):  
 
 ```python
@@ -173,12 +173,12 @@ static_point = tp.get_static_point(speed=speed)
 total_point = tp.get_stagnation_point(speed=speed)
 
 ```
-The speed value must be ginve in m/s!
+The speed value must be given in m/s!
 
 ### Diagram Plotter
-The _DiagramPlotter_ class can be used to plot a specific state diagram that can be then used to describe state 
-transformations. The diagram can be personalized using the _DiagramPlotterOptions_ class. 
-The following is an example on how to use the class.
+The _DiagramPlotter_ class can be used to plot a specific state diagram that can then be used to describe state 
+transformations. The diagram can be customized using the _DiagramPlotterOptions_ class. 
+The following is an example of how to use the class.
 
 
 ```python
@@ -213,6 +213,44 @@ plotter.plot(ax_1)
 plt.show()
 ```
 
+### Uncertainty Calculation
+
+The connector allows you to manage and calculate the uncertainty of thermodynamic variables through error propagation.  
+You can set the relative uncertainty (as a fraction, e.g. 0.01 for 1%) on input variables and calculate the uncertainty on derived variables.
+
+#### Setting the uncertainty
+
+```python
+from REFPROPConnector import ThermodynamicPoint
+
+tp = ThermodynamicPoint(["water"], [1.])
+tp.set_variable("P", 0.101325)
+tp.set_variable("T", 100)
+
+# Set relative uncertainty on pressure and temperature
+tp.set_relative_uncertainty("P", 0.01)  # 1% on pressure
+tp.set_relative_uncertainty("T", 0.005) # 0.5% on temperature
+```
+
+#### Calculating uncertainty on a derived variable
+
+Uncertainty is calculated by error propagation considering the partial derivatives with respect to the inputs:
+
+```python
+# Calculate absolute uncertainty on density
+rho_unc = tp.get_absolute_uncertainty("rho")
+print("Uncertainty on density:", rho_unc)
+```
+
+You can also convert the uncertainty to another unit system:
+
+```python
+rho_unc_SI = tp.get_absolute_uncertainty("rho", other_unit_system="SI BASE")
+```
+
+The `get_uncertainty` method uses error propagation considering the uncertainties set on the input variables (typically the first two independent variables defined).
+
 __-------------------------- !!! THIS IS A BETA VERSION !!! --------------------------__ 
 
 please report any bug or problems in the installation to _pietro.ungar@unifi.it_<br/>
+

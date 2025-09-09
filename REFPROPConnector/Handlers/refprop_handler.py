@@ -1,9 +1,6 @@
-import warnings
-
-from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
-
 from REFPROPConnector.Support.resources.file_handler import get_RP_EXEC
 from .__base_handler import BaseHandler, DEFAULT_UNIT_SYSTEM, CODES_TO_BE_ITERATED, QualityIteration
+from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 
 
 class RefPropHandler(BaseHandler):
