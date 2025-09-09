@@ -1,8 +1,7 @@
-import warnings
-
 from scipy.integrate import solve_ivp
 from abc import ABC, abstractmethod
 from sty import fg, bg, ef, rs
+import warnings
 import sty
 
 
@@ -246,12 +245,13 @@ class AbstractThermodynamicPoint(ABC):
 
             return None
 
-    def get_derivative(self, num_name: str, den_name: str, fix_name: str):
+    def get_derivative(self, num_name: str, den_name: str, fix_name: str, force_num_calculation=False):
+
+        result = None
 
         if self.calculation_ready:
 
             info = constants.get_derivative_info(num_name, den_name, fix_name)
-
             if info is not None:
 
                 rp_codes = info.refprop_codes
@@ -261,17 +261,32 @@ class AbstractThermodynamicPoint(ABC):
                     a = self.__calculate_direct(rp_codes[0])
                     b = self.__calculate_direct(rp_codes[1])
 
-                    return - a / b
+                    result = - a / b
 
                 elif info.is_inverse:
 
-                    return 1 / self.__calculate_direct(rp_codes[0])
+                    result = 1 / self.__calculate_direct(rp_codes[0])
 
                 else:
 
-                    return self.__calculate_direct(rp_codes[0])
+                    result = self.__calculate_direct(rp_codes[0])
 
-        return None
+            if (result is None or abs(result)>1e8) and force_num_calculation:
+
+                delta = 1e-6
+
+                __tmp_state = self.duplicate()
+                den_var = self.get_variable(den_name)
+                fix_var = self.get_variable(fix_name)
+                curr = self.get_variable(num_name)
+
+                __tmp_state.set_variable(fix_name, fix_var)
+                __tmp_state.set_variable(den_name, den_var + delta)
+                plus = __tmp_state.get_variable(num_name)
+
+                result = (plus - curr) / delta
+
+        return result
 
     def get_second_derivative(self, num_name: str, den_name: str, other_den_name=None):
 
@@ -333,6 +348,74 @@ class AbstractThermodynamicPoint(ABC):
         for variable in self.state_var_list:
             variable.order = counter
             counter += 1
+
+    # UNCERTAINTY METHODS
+    def set_absolute_uncertainty(self, variable_name: str, abs_uncertainty: float):
+        """
+            Sets the absolute uncertainty of the requested variable.
+        """
+        variable = self.__get_variable_from_name(variable_name)
+        if variable is not None:
+            variable.abs_uncertainty = abs_uncertainty
+
+    def set_relative_uncertainty(self, variable_name: str, rel_uncertainty: float):
+        """
+            Sets the relative uncertainty of the requested variable.
+            The uncertainty is expressed as a fraction (e.g. 0.01 for 1%).
+        """
+        variable = self.__get_variable_from_name(variable_name)
+        if variable is not None:
+            variable.rel_uncertainty = rel_uncertainty
+
+    def __get_uncertainty(self, variable_name: str):
+        """
+        Calcola l'incertezza della variabile richiesta tramite propagazione degli errori.
+        Si assume che le variabili di input abbiano un attributo 'uncertainty'.
+        """
+        variable = self.__get_variable_from_name(variable_name)
+
+        if variable is None:
+            return None
+
+        # Ottieni le variabili di input (tipicamente le prime due non nulle)
+        input_vars = self.not_none_variables
+        if len(input_vars) < 2:
+            return None
+
+            # Calcola le derivate parziali rispetto agli input
+        partials = [self.get_derivative(
+
+            variable_name, v.refprop_name,
+            input_vars[1 - i].refprop_name,
+            force_num_calculation=True
+
+        ) for i, v in enumerate(input_vars)]
+
+        # Ottieni le incertezze degli input
+        abs_unc = [getattr(v, "abs_uncertainty", 0.) for v in input_vars]
+
+        # Propagazione degli errori
+        variance = sum((partials[i] * abs_unc[i]) ** 2 for i in range(len(input_vars))) ** 0.5
+        variable.abs_uncertainty = variance
+
+    def get_absolute_uncertainty(self, variable_name: str, other_unit_system=None):
+
+        variable = self.__get_variable_from_name(variable_name)
+        if variable is not None:
+            self.__get_uncertainty(variable_name)
+            if other_unit_system is None:
+                return variable.abs_uncertainty
+            else:
+                return variable.convert(
+                    self.RPHandler, other_unit_system,
+                    value_to_convert=variable.abs_uncertainty
+                )
+
+    def get_relative_uncertainty(self, variable_name: str, other_unit_system=None):
+        variable = self.__get_variable_from_name(variable_name)
+        if variable is not None:
+            self.__get_uncertainty(variable_name)
+            return variable.rel_uncertainty
 
     @property
     def calculation_ready(self):

@@ -200,6 +200,12 @@ class BaseHandler(ABC):
         if reset:
             GLOBALCounter = 0
 
+    @property
+    def global_counter(self):
+
+        global GLOBALCounter
+        return GLOBALCounter
+
     def __init_subclass__(cls, **kwargs):
 
         global HANDLER_SUBCLASSES

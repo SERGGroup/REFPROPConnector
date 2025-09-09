@@ -252,6 +252,25 @@ class TestREFPROPConnector(unittest.TestCase):
 
         self.assertTrue((error_stag < 0.001) and (error_stat < 0.001))
 
+    def test_uncertanty(self):
+
+        tp = ThermodynamicPoint(["Air"], [1])
+
+        t_in = 10
+        p_in = 0.101325
+
+        tp.set_variable("T", t_in)
+        tp.set_variable("P", p_in)
+
+        tp.set_relative_uncertainty("T", 0.1)
+        tp.set_relative_uncertainty("P", 0.1)
+
+        s_value = tp.get_variable("S")
+        ds_abs = tp.get_absolute_uncertainty("S")
+        ds_rel = tp.get_relative_uncertainty("S")
+        print("S = {:.2f} +/- {:.2f} ({:.2f} %)".format(s_value, ds_abs, ds_rel*100))
+        self.assertTrue((ds_rel > 0) and (ds_abs > 0) and (ds_rel == ds_abs / abs(s_value)))
+
 
 if __name__ == '__main__':
 
